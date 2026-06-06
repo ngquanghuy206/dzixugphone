@@ -176,7 +176,7 @@ body{background:var(--bg1);color:var(--text);font-family:-apple-system,BlinkMacS
 .sb-logout{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:12px;background:rgba(255,89,89,.08);border:1px solid rgba(255,89,89,.2);cursor:pointer;font-size:13px;font-weight:700;color:#ff5959;transition:all .15s}
 .sb-logout:hover{background:rgba(255,89,89,.15)}
 /* Welcome topbar */
-.welcome-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0;position:sticky;top:0;z-index:300;background:var(--bg1)}
+.welcome-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0;position:relative;z-index:1}
 .welcome-topbar-logo{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--blue);letter-spacing:.5px}
 .welcome-topbar-right{display:flex;align-items:center;gap:10px}
 .welcome-clock{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
