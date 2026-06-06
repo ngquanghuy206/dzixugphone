@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FB Dame Tool — Dịch Vụ Báo Cáo Facebook Tự Động 24/7</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Dzi Meo Meo · IT Automation">
+<meta property="og:title" content="FB Dame Tool — Dịch Vụ Báo Cáo Facebook Tự Động 24/7">
+<meta property="og:description" content="⚡ Hệ thống báo cáo Facebook tự động 24/7 · Cung cấp máy ảo Windows, PC ảo, Phone ảo để dame tự động · Tốc độ cao, ổn định · Dev: Nguyễn Hoàng Khánh Nam (Dzi Meo Meo) · 2026">
+<meta property="og:image" content="https://i.imgur.com/1qYFul7.jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://dzimeomeo.onrender.com">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FB Dame Tool — Dịch Vụ Báo Cáo Facebook Tự Động 24/7">
+<meta name="twitter:description" content="⚡ Báo cáo Facebook tự động 24/7 · Máy ảo Windows, PC ảo, Phone ảo · Dev: Dzi Meo Meo · 2026">
+<meta name="twitter:image" content="https://i.imgur.com/1qYFul7.jpeg">
+<meta name="description" content="⚡ Hệ thống báo cáo Facebook tự động 24/7 · Cung cấp máy ảo Windows, PC ảo, Phone ảo để dame tự động · Tốc độ cao, ổn định · Dev: Nguyễn Hoàng Khánh Nam (Dzi Meo Meo) · 2026">
+<meta name="keywords" content="FB Dame Tool, báo cáo Facebook, dame acc, tool dame, Dzi Meo Meo, máy ảo Windows, PC ảo, phone ảo, VPS dame Facebook">
+<meta name="author" content="Nguyễn Hoàng Khánh Nam (Dzi Meo Meo)">
+<link rel="icon" href="https://i.imgur.com/1qYFul7.jpeg" type="image/jpeg">
+<link rel="stylesheet" href="/static/style.css?v=19">
+<script>
+// Anti-flash: ẩn auth ngay nếu có token
+(function(){
+  var rm = localStorage.getItem('zct_remember')==='1';
+  var tok = rm ? localStorage.getItem('zct_token') : sessionStorage.getItem('zct_token');
+  if(tok){
+    document.addEventListener('DOMContentLoaded',function(){
+      var a=document.getElementById('auth-screen');
+      if(a) a.style.display='none';
+    });
+  }
+})();
+</script>
+</head>
+<body>
+<audio id="bg-music" loop>
+  <source src="/static/nhac.mp3" type="audio/mpeg">
+</audio>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card-new">
+
+    <!-- ── LOGO ── -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div class="rainbow-logo-wrap" style="display:inline-block;margin-bottom:14px">
+        <img src="https://i.imgur.com/vIkYA9e.jpeg" class="rainbow-logo-img" alt="FB Dame Tool" style="width:72px;height:72px;border-radius:18px;object-fit:cover">
+      </div>
+      <div id="auth-title-login" style="font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px">Chào mừng trở lại</div>
+      <div id="auth-title-register" style="font-size:26px;font-weight:800;color:#fff;letter-spacing:-.5px;display:none">Tạo tài khoản</div>
+      <div id="auth-sub-login" style="font-size:14px;color:rgba(255,255,255,.45);margin-top:4px">Đăng nhập vào tài khoản của bạn</div>
+      <div id="auth-sub-register" style="font-size:14px;color:rgba(255,255,255,.45);margin-top:4px;display:none">Điền thông tin để đăng ký</div>
+    </div>
+    <!-- tabs ẩn, giữ để switchAuthTab không lỗi -->
+    <div style="display:none">
+      <div id="tab-login-btn"></div>
+      <div id="tab-reg-btn"></div>
+    </div>
+
+    <!-- ══ LOGIN FORM ══ -->
+    <div id="auth-login-form" style="display:flex;flex-direction:column;gap:14px">
+      <!-- Username -->
+      <div>
+        <div class="auth-field-label-new">Tên đăng nhập</div>
+        <input class="auth-input-new" id="login-user" type="text" placeholder="Nhập tên đăng nhập" autocomplete="username"
+          onkeydown="if(event.key==='Enter'){document.getElementById('login-pass').focus()}">
+      </div>
+      <!-- Password -->
+      <div>
+        <div class="auth-field-label-new">Mật khẩu</div>
+        <div style="position:relative">
+          <input class="auth-input-new" id="login-pass" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password"
+            style="padding-right:48px"
+            onkeydown="if(event.key==='Enter')doLogin()">
+          <button type="button" class="pw-eye-btn" onclick="togglePw('login-pass',this)" title="Hiện/ẩn mật khẩu" aria-label="Hiện/ẩn mật khẩu">
+            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Remember + Forgot -->
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="remember-row" id="remember-row" onclick="toggleRemember()" style="user-select:none;margin:0">
+          <div class="remember-check-new" id="remember-check"></div>
+          <span style="font-size:13px;color:rgba(255,255,255,.55)">Ghi nhớ đăng nhập</span>
+        </div>
+        <span onclick="openForgotModal()" style="font-size:13px;font-weight:700;color:rgba(255,255,255,.55);cursor:pointer">Quên mật khẩu?</span>
+      </div>
+      <!-- Error -->
+      <div class="auth-err" id="login-err"></div>
+
+      <!-- Login button -->
+      <button class="auth-btn-new" id="login-btn" type="button" onclick="doLogin()">Đăng nhập</button>
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.3)">hoặc</div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+      </div>
+      <!-- Switch to register -->
+      <div style="text-align:center;font-size:14px;color:rgba(255,255,255,.45)">
+        Chưa có tài khoản? <span onclick="switchAuthTab('register')" style="color:#fff;font-weight:700;cursor:pointer">Tạo ngay</span>
+      </div>
+    </div>
+
+    <!-- ══ REGISTER FORM ══ -->
+    <div id="auth-register-form" style="display:none;flex-direction:column;gap:14px">
+      <div>
+        <div class="auth-field-label-new">Tên đăng nhập</div>
+        <input class="auth-input-new" id="reg-user" type="text" placeholder="Tối thiểu 6 ký tự" autocomplete="username">
+      </div>
+      <div>
+        <div class="auth-field-label-new">Mật khẩu</div>
+        <input class="auth-input-new" id="reg-pass" type="password" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+      </div>
+      <div>
+        <div class="auth-field-label-new">Gmail</div>
+        <input class="auth-input-new" id="reg-email" type="email" placeholder="example@gmail.com" onkeydown="if(event.key==='Enter')doRegisterSendOtp()">
+      </div>
+      <!-- CAPTCHA -->
+      <div>
+
+      </div>
+      <div class="auth-err" id="reg-err"></div>
+      <!-- Step 1 -->
+      <div id="reg-step1">
+        <button class="auth-btn-new" id="reg-btn" onclick="doRegisterSendOtp()">Gửi mã OTP xác minh</button>
+      </div>
+      <!-- Step 2: OTP -->
+      <div id="reg-step2" style="display:none;flex-direction:column;gap:10px">
+        <p style="font-size:12px;color:rgba(255,255,255,.45);text-align:center;margin:0">📨 Mã OTP đã gửi về Gmail của bạn</p>
+        <div class="otp-timer" id="reg-otp-timer-wrap">
+          ⏱ Còn lại: <span class="otp-timer-val" id="reg-otp-timer-val">5:00</span>
+          <span class="otp-timer-bar"><span class="otp-timer-fill" id="reg-otp-bar-fill" style="width:100%"></span></span>
+        </div>
+        <input class="auth-input-new" id="reg-otp" type="text" maxlength="6" placeholder="Nhập OTP 6 số" style="letter-spacing:8px;font-size:20px;text-align:center">
+        <button class="auth-btn-new" id="reg-otp-btn" onclick="doRegisterVerify()">✅ Xác minh & Đăng ký</button>
+        <div style="text-align:center">
+          <span onclick="doRegisterSendOtp()" style="color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">🔄 Gửi lại OTP</span>
+        </div>
+      </div>
+      <!-- Switch to login -->
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0">
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.3)">hoặc</div>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+      </div>
+      <div style="text-align:center;font-size:14px;color:rgba(255,255,255,.45)">
+        Đã có tài khoản? <span onclick="switchAuthTab('login')" style="color:#fff;font-weight:700;cursor:pointer">Đăng nhập</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     WELCOME SCREEN (shown after login)
+════════════════════════════════════════════════════════ -->
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay" onclick="closeMenu()"></div>
+
+<!-- SIDEBAR PANEL -->
+<div id="main-sidebar">
+  <div class="sb-header">
+    <div class="sb-logo">
+      <span class="sb-logo-img"><img src="https://i.imgur.com/1qYFul7.jpeg" class="sb-logo-circle" alt="logo"></span>
+      <span class="sb-logo-text">FB DAME TOOL</span>
+    </div>
+    <div class="sb-close" onclick="closeMenu()">✕</div>
+  </div>
+
+  <div class="sb-user">
+    <div class="sb-user-avatar" id="sb-avatar-el">👤</div>
+    <div>
+      <div class="sb-user-name" id="sb-name-el">...</div>
+      <div class="sb-user-role" id="sb-role-el">Thành viên</div>
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px" id="sb-balance-el">💰 0đ</div>
+    </div>
+  </div>
+
+  <div class="sb-item active" id="sb-home-item" onclick="goHome();closeMenu()">
+    <span class="sb-item-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+    Trang chủ
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section-label">Tính năng</div>
+  <div class="sb-item" onclick="openIntroModal();closeMenu()">
+    <span class="sb-item-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M9.1 3.4C10 3.1 11 3 12 3"/></svg></span>
+    Giới thiệu &amp; Chức năng
+  </div>
+  <div class="sb-item" onclick="openServerListModal();closeMenu()">
+    <span class="sb-item-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+    Danh sách máy chủ
+  </div>
+  <div class="sb-item" id="sb-dep-hist-item" onclick="openDepositHistoryModal();closeMenu()">
+    <span class="sb-item-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg></span>
+    Lịch sử nạp
+  </div>
+  <div class="sb-item" id="sb-pur-hist-item" onclick="openPurchaseHistoryModal();closeMenu()">
+    <span class="sb-item-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></span>
+    Lịch sử mua hàng
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section-label">Tài khoản</div>
+  <div class="sb-item" id="sb-account-item" onclick="openAccountInfo();closeMenu()">
+    <span class="sb-item-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    Thông tin tài khoản
+  </div>
+  <div class="sb-item" id="sb-deposit-item" onclick="openDepositModal();closeMenu()">
+    <span class="sb-item-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+    Nạp tiền
+  </div>
+  <div class="sb-item" id="sb-vps-shop-item" onclick="openVpsShop();closeMenu()">
+    <span class="sb-item-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></span>
+    📱 Mua Máy ảo
+  </div>
+  <div class="sb-item" id="sb-my-vps-item" onclick="openMyVps();closeMenu()">
+    <span class="sb-item-icon ic-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="2"/></svg></span>
+    📱 Máy ảo của tôi
+  </div>
+  <div class="sb-item" onclick="openPostsFeed();closeMenu()">
+    <span class="sb-item-icon ic-pink"><svg viewBox="0 0 24 24" fill="none" stroke="#ff50a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+    📝 Bài đăng
+    <span class="sb-item-tag new">NEW</span>
+  </div>
+  <div class="sb-item" onclick="openTopNapModal();closeMenu()">
+    <span class="sb-item-icon ic-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#ffc800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+    🏆 Bảng xếp hạng nạp
+  </div>
+  <!-- ADMIN SECTION - chỉ hiển thị cho admin -->
+  <div id="sb-admin-section" style="display:none">
+    <div class="sb-divider"></div>
+    <div class="sb-section-label" style="color:#ff8c00;display:flex;align-items:center;gap:5px"><span>👑</span> Quản trị Admin</div>
+    <div class="sb-item" id="sb-admin-hotdeal-item" onclick="openAdminHotDealModal();closeMenu()" style="background:linear-gradient(135deg,rgba(255,100,0,.06),transparent);border-left:2px solid rgba(255,100,0,.4)">
+      <span class="sb-item-icon" style="background:rgba(255,100,0,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff6d00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+      🔥 Tạo Hot Deal
+    </div>
+    <div class="sb-item" id="sb-admin-notif-item" onclick="openAdminNotifModal();closeMenu()" style="background:linear-gradient(135deg,rgba(255,152,0,.06),transparent);border-left:2px solid rgba(255,152,0,.4)">
+      <span class="sb-item-icon" style="background:rgba(255,152,0,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      📢 Tạo thông báo
+    </div>
+  </div>
+  <div class="sb-divider"></div>
+  <div class="sb-section-label">Khác</div>
+  <div class="sb-item" onclick="openModal('admin-modal');closeMenu()">
+    <span class="sb-item-icon ic-orange"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9632" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    Thông tin Admin
+  </div>
+  <div class="sb-item" onclick="openModal('guide-modal');closeMenu()">
+    <span class="sb-item-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+    Hướng dẫn
+  </div>
+  <div class="sb-item" id="mgmt-menu-item" style="display:none" onclick="openMgmt();closeMenu()">
+    <span class="sb-item-icon ic-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#ffc800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+    Admin Panel
+  </div>
+
+  <div class="sb-divider"></div>
+  <div class="sb-section-label">Cài đặt</div>
+  <div class="sb-toggle-row" onclick="toggleTheme()">
+    <div class="sb-toggle-label">
+      <span class="sb-toggle-icon ic-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      <span id="theme-label">Chế độ tối</span>
+    </div>
+    <div class="toggle-switch on" id="theme-toggle"><div class="toggle-knob"></div></div>
+  </div>
+  <div class="sb-toggle-row" onclick="toggleMusic()">
+    <div class="sb-toggle-label">
+      <span class="sb-toggle-icon ic-pink"><svg viewBox="0 0 24 24" fill="none" stroke="#ff50a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+      Nhạc nền
+    </div>
+    <div class="toggle-switch" id="music-toggle"><div class="toggle-knob"></div></div>
+  </div>
+  <div class="sb-toggle-row" onclick="toggleSfx()">
+    <div class="sb-toggle-label">
+      <span class="sb-toggle-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
+      Âm thanh
+    </div>
+    <div class="toggle-switch on" id="sfx-toggle"><div class="toggle-knob"></div></div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-logout" onclick="doLogout()">
+      <span class="sb-toggle-icon ic-red" style="background:rgba(255,80,80,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+      Đăng xuất
+    </div>
+  </div>
+</div>
+
+<div id="welcome-screen" style="display:none">
+  <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+
+  <!-- TOPBAR WELCOME -->
+  <div class="welcome-topbar">
+    <div class="welcome-topbar-logo">🐬 FB Dame Tool</div>
+    <div class="welcome-topbar-right">
+      <div class="welcome-clock" id="clock-welcome">--:--:--</div>
+      <div onclick="openInboxPage()" title="Hộp thư" style="width:38px;height:38px;border-radius:11px;border:1px solid rgba(79,158,255,.25);background:rgba(79,158,255,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span id="chat-unread-dot-welcome" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff4d4d;border:1.5px solid var(--bg1)"></span>
+      </div>
+      <div id="bell-btn" onclick="event.stopPropagation();toggleBellDrop()" title="Thông báo" style="width:38px;height:38px;border-radius:11px;border:1px solid rgba(255,152,0,.25);background:rgba(255,152,0,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0">
+        <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="bell-badge" style="display:none;position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:8px;background:#ff4d4d;border:1.5px solid var(--bg1);font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;padding:0 3px"></span>
+      </div>
+      <div class="hamburger-btn" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="welcome-wrap">
+
+    <!-- HERO -->
+    <div class="welcome-hero" style="padding-top:24px">
+      <div class="welcome-hero-badge">🐬 &nbsp;FB DAME TOOL</div>
+      <div class="welcome-title">Chào mừng trở lại! 👋</div>
+      <div class="welcome-sub">Công cụ dame acc Facebook tự động — báo cáo liên tục, chạy trên máy chủ ảo 24/7, không cần giữ máy bật.</div>
+    </div>
+
+    <!-- ADMIN INFO -->
+    <div class="admin-hero-card">
+      <div class="admin-hero-avatar">🧑‍💻</div>
+      <div class="admin-hero-info">
+        <div class="admin-hero-name">Nguyễn Hoàng Khánh Nam</div>
+        <div class="admin-hero-role">Dzi Meo Meo · IT Automation Developer · 2026</div>
+        <div class="admin-hero-tags">
+          <span class="admin-tag">🎂 30/05/2006</span>
+          <span class="admin-tag">📱 Zalo: 0993329535</span>
+          <span class="admin-tag">🎵 TikTok: @hkhanhnam206</span>
+          <span class="admin-tag">💼 Bot Dev</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-divider"></div>
+
+    <!-- FEATURES -->
+    <div style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">⚡ Tính năng nổi bật</div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="width:46px;height:46px;border-radius:13px;background:rgba(149,76,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="feature-title">Máy chủ ảo 24/7</div>
+        <div class="feature-desc">Cấu hình lưu vĩnh viễn, chạy liên tục không cần giữ máy tính bật.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="width:46px;height:46px;border-radius:13px;background:rgba(41,121,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="feature-title">Theo dõi realtime</div>
+        <div class="feature-desc">Xem log, số báo cáo, screenshot tab máy ảo trực tiếp.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="width:46px;height:46px;border-radius:13px;background:rgba(255,150,50,.2);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff9632" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="feature-title">Đa dạng cookie</div>
+        <div class="feature-desc">Hỗ trợ header string, JSON array, nhiều dòng từ Cookie-Editor.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="width:46px;height:46px;border-radius:13px;background:rgba(0,200,130,.2);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="feature-title">Nhiều tốc độ</div>
+        <div class="feature-desc">Chọn nhanh/trung bình/chậm tùy nhu cầu và sức khoẻ cookie.</div>
+      </div>
+    </div>
+
+    <!-- HOT DEAL CAROUSEL -->
+    <div id="hot-deal-carousel-wrap" style="margin-bottom:18px;display:none"></div>
+
+    <div class="welcome-divider"></div>
+
+    <!-- ACTIONS -->
+    <div style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px">🚀 Bắt đầu ngay</div>
+    <div class="welcome-actions">
+      <button class="welcome-action-btn primary full" onclick="welcomeCreateServer()">
+        <span class="wab-icon" style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+        <div class="wab-title">Tạo máy chủ &amp; Chạy ngay</div>
+        <div class="wab-desc">Nhập tên → cookie → target → lưu &amp; chạy hoặc chạy sau. Hỗ trợ nhiều máy chủ song song 24/7.</div>
+      </button>
+      <button class="welcome-action-btn secondary full" onclick="welcomeServerList()">
+        <span class="wab-icon" style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+        <div class="wab-title">Danh sách máy chủ</div>
+        <div class="wab-desc">Xem, quản lý, khởi động lại các máy chủ đã tạo. Theo dõi trạng thái realtime.</div>
+      </button>
+    </div>
+
+    <!-- COPYRIGHT -->
+    <div style="text-align:center;margin-top:32px;padding:20px 0 8px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:11px;color:rgba(255,255,255,.25);line-height:1.8;letter-spacing:.3px">
+        © 2026 · Bản quyền thuộc về<br>
+        <span style="color:rgba(79,158,255,.6);font-weight:700">Nguyễn Hoàng Khánh Nam · Dzi Meo Meo</span><br>
+        <span style="opacity:.6">IT Automation Developer · FB Dame Tool</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgot-modal" onclick="if(event.target===this)closeModal('forgot-modal')">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-title">🔑 Quên mật khẩu</div>
+
+    <!-- STEP 1: Nhập email -->
+    <div id="forgot-step1">
+      <div class="field-group">
+        <div class="field-label">Gmail đã đăng ký</div>
+        <input class="field-input" id="forgot-email" type="email" placeholder="example@gmail.com">
+      </div>
+      <div class="auth-err" id="forgot-err1"></div>
+      <button class="auth-btn" id="forgot-btn1" onclick="doForgotSend()">📧 Gửi mã OTP</button>
+    </div>
+
+    <!-- STEP 2: Nhập OTP -->
+    <div id="forgot-step2" style="display:none">
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:10px">Nhập mã OTP đã gửi về Gmail của bạn</p>
+      <div class="otp-timer" id="otp-timer-wrap">
+        ⏱ Còn lại: <span class="otp-timer-val" id="otp-timer-val">5:00</span>
+        <span class="otp-timer-bar"><span class="otp-timer-fill" id="otp-bar-fill" style="width:100%"></span></span>
+      </div>
+      <div style="margin-bottom:10px"></div>
+      <div class="field-group">
+        <div class="field-label">Mã OTP (6 số)</div>
+        <input class="field-input" id="forgot-otp" type="text" maxlength="6" placeholder="123456" style="letter-spacing:6px;font-size:20px;text-align:center">
+      </div>
+      <div class="auth-err" id="forgot-err2"></div>
+      <button class="auth-btn" id="forgot-btn2" onclick="doVerifyOtp()">✅ Xác nhận OTP</button>
+      <div style="text-align:center;margin-top:8px">
+        <span onclick="doForgotSend();startOtpCountdown(300)" style="color:var(--blue);font-size:12px;cursor:pointer">Gửi lại OTP</span>
+      </div>
+    </div>
+
+    <!-- STEP 3: Đặt MK mới -->
+    <div id="forgot-step3" style="display:none">
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:16px">OTP hợp lệ! Nhập mật khẩu mới</p>
+      <div class="field-group">
+        <div class="field-label">Mật khẩu mới</div>
+        <input class="field-input" id="forgot-newpw" type="password" placeholder="Tối thiểu 6 ký tự">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Xác nhận mật khẩu</div>
+        <input class="field-input" id="forgot-confirmpw" type="password" placeholder="Nhập lại mật khẩu mới">
+      </div>
+      <div class="auth-err" id="forgot-err3"></div>
+      <button class="auth-btn" id="forgot-btn3" onclick="doResetPassword()">🔐 Đặt lại mật khẩu</button>
+    </div>
+
+    <button class="close-btn" onclick="closeModal('forgot-modal')" style="margin-top:12px">Đóng</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ADMIN MODAL
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="admin-modal" onclick="if(event.target===this)closeModal('admin-modal')">
+  <div class="modal-box">
+    <div class="admin-avatar">🧑‍💻</div>
+    <div class="admin-name">Nguyễn Hoàng Khánh Nam</div>
+    <div class="admin-title">Dzi Meo Meo · IT Automation Developer · 2026</div>
+    <div class="admin-info-row" style="justify-content:center;font-size:15px;font-weight:700;color:var(--blue);letter-spacing:1px" id="admin-clock">⏰ --:--:--</div>
+    <div class="admin-info-row">🎂 <span>30/05/2006</span></div>
+    <div class="admin-info-row">📱 <span>Zalo: <b>0993329535</b></span></div>
+    <div class="admin-info-row">🎵 <span>TikTok: <b>@hkhanhnam206</b></span></div>
+    <div class="admin-info-row">💼 <span>Lĩnh vực: <b>IT / Automation / Bot Dev</b></span></div>
+    <div class="admin-info-row">✨ <span>Admin: <b>Dzi Meo Meo</b></span></div>
+    <button class="close-btn" onclick="closeModal('admin-modal')">✕ Đóng</button>
+  </div>
+</div>
+
+<!-- INTRO MODAL -->
+<div class="modal-overlay" id="intro-modal" onclick="if(event.target===this)closeModal('intro-modal')">
+  <div class="modal-box" style="max-width:520px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:48px">🐬</div>
+      <div style="font-size:20px;font-weight:800;color:var(--blue)">FB Dame Tool</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Phát triển bởi Dzi Meo Meo · 2026</div>
+    </div>
+    <div style="background:var(--glass2);border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.8">
+      🐬 <b>Dame acc Facebook</b> tự động — báo cáo liên tục nhiều loại vi phạm.<br>
+      🖥 Chạy trên <b>máy chủ ảo</b> 24/7, không cần giữ máy tính bật.<br>
+      📊 Theo dõi trạng thái, xem log realtime, quản lý nhiều phiên.
+    </div>
+    <div style="font-weight:700;margin-bottom:10px;font-size:13px">⚡ Chọn chức năng:</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-primary" style="padding:14px;font-size:14px;font-weight:700;border-radius:14px" onclick="closeModal('intro-modal');openCreateServerModal()">
+        🖥 Tạo máy chủ — Nhập cookie, target & chạy ngay
+      </button>
+      <button class="btn" style="padding:14px;font-size:14px;font-weight:700;border-radius:14px;background:var(--glass2);border:1px solid var(--border)" onclick="closeModal('intro-modal');openServerListModal()">
+        📋 Danh sách máy chủ — Xem & quản lý
+      </button>
+    </div>
+    <button class="close-btn" style="margin-top:16px" onclick="closeModal('intro-modal')">✕ Đóng</button>
+  </div>
+</div>
+
+<!-- CREATE SERVER MODAL -->
+<div class="modal-overlay" id="create-server-modal" onclick="if(event.target===this){if(_svWizardStep===1)closeModal('create-server-modal')}">
+  <div class="modal-box" style="max-width:520px;padding:0;overflow:hidden">
+
+    <!-- HEADER -->
+    <div style="padding:18px 20px 14px;background:linear-gradient(135deg,rgba(79,158,255,.1),rgba(124,77,255,.1));border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="modal-title" style="margin:0;font-size:16px">🖥 Tạo máy chủ</div>
+        <button onclick="closeModal('create-server-modal')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0">✕</button>
+      </div>
+      <!-- Step bar -->
+      <div style="display:flex;gap:0;border-radius:10px;overflow:hidden;background:var(--glass2)">
+        <div id="sv-step-bar-0" style="flex:1;padding:8px 0;text-align:center;font-size:11px;font-weight:700;transition:.3s;background:linear-gradient(135deg,var(--blue2),var(--purple));color:#fff">🖥 Slot</div>
+        <div id="sv-step-bar-1" style="flex:1;padding:8px 0;text-align:center;font-size:11px;font-weight:700;transition:.3s;color:var(--muted)">📛 Tên</div>
+        <div id="sv-step-bar-2" style="flex:1;padding:8px 0;text-align:center;font-size:11px;font-weight:700;transition:.3s;color:var(--muted)">🍪 Cookie</div>
+        <div id="sv-step-bar-3" style="flex:1;padding:8px 0;text-align:center;font-size:11px;font-weight:700;transition:.3s;color:var(--muted)">🎯 Target</div>
+      </div>
+    </div>
+
+    <div style="padding:20px">
+
+    <!-- ── BƯỚC 0: CHỌN SLOT ── -->
+    <div id="sv-step-0">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">🖥 Chọn máy chủ (slot)</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">
+        Chọn slot đã mua để sử dụng cho lần dame này.
+      </div>
+      <div id="sv-slot-list" style="max-height:260px;overflow-y:auto"></div>
+      <div id="sv-err-slot" class="auth-err" style="margin-bottom:8px;display:none"></div>
+      <button class="btn btn-primary" id="sv-btn-slot-next" style="width:100%;padding:13px;font-size:14px;margin-top:4px" onclick="svWizardNext(0)">Tiếp theo →</button>
+    </div>
+
+    <!-- ── BƯỚC 1: TÊN MÁY CHỦ ── -->
+    <div id="sv-step-1" style="display:none">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px">📛 Đặt tên máy chủ</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Tên dùng để phân biệt các máy chủ, không ảnh hưởng chức năng.
+      </div>
+      <div class="field-label">Tên máy chủ</div>
+      <input id="sv-name" class="field-input" placeholder="VD: Dame target ABC, Máy chủ 1..." style="margin-bottom:16px"/>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="svWizardNext(1)">Tiếp theo →</button>
+      <button class="btn btn-outline" style="width:100%;padding:10px;font-size:12px;margin-top:8px" onclick="svWizardBack(1)">← Đổi slot</button>
+    </div>
+
+    <!-- ── BƯỚC 1: COOKIE ── -->
+    <div id="sv-step-2" style="display:none">
+      <div style="font-size:13px;font-weight:800;color:var(--blue);margin-bottom:4px">🍪 BƯỚC 2 — NHẬP COOKIE FACEBOOK</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;line-height:1.6">
+        Hỗ trợ mọi format: <b>header string</b>, <b>JSON array</b> (Cookie-Editor), nhiều dòng.
+      </div>
+      <textarea id="sv-cookie" class="field-input" rows="5"
+        placeholder="Dán cookie vào đây...&#10;VD: datr=xxx; c_user=yyy; xs=zzz&#10;Hoặc JSON từ extension Cookie-Editor"
+        style="resize:vertical;font-family:monospace;font-size:11.5px;line-height:1.6;margin-bottom:8px"
+        oninput="svDetectCookieFormat(this.value)"></textarea>
+      <div id="sv-cookie-hint" style="font-size:11px;color:var(--muted);margin-bottom:8px;min-height:16px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="svPasteCookie()"><span class="sb-item-icon ic-blue" style="width:22px;height:22px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>Dán</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="document.getElementById('sv-cookie').value='';document.getElementById('sv-cookie-hint').textContent=''"><span class="sb-item-icon ic-red" style="width:22px;height:22px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span>Xóa</button>
+      </div>
+      <div id="sv-cookie-result" style="display:none;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.7;margin-bottom:10px"></div>
+      <div class="field-label" style="font-size:12px;margin-bottom:6px">🏷️ Tên tab (tuỳ chọn)</div>
+      <input id="sv-tab-name" class="field-input" type="text" placeholder="VD: Acc chính, Nick dự phòng..." style="font-size:13px;margin-bottom:14px"/>
+      <div id="sv-err1" class="auth-err" style="margin-bottom:8px"></div>
+      <button class="btn btn-primary" id="sv-btn-cookie" style="width:100%;padding:13px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="svWizardCookieVerify()"><span class="sb-item-icon" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg></span>Xác nhận Cookie</button>
+      <button class="btn btn-outline" style="width:100%;padding:10px;font-size:12px;margin-top:8px" onclick="svWizardBack(2)">← Đổi tên</button>
+    </div>
+
+    <!-- ── BƯỚC 2: TARGET ── -->
+    <div id="sv-step-3" style="display:none">
+      <!-- Acc confirmed -->
+      <div id="sv-acc-confirmed" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);margin-bottom:14px">
+        <div style="font-size:26px">🍪</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)" id="sv-acc-name-show">—</div>
+          <div style="font-size:11px;color:var(--green)">✅ Cookie hợp lệ</div>
+        </div>
+        <button onclick="svWizardBack(2)" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px" title="Đổi cookie">✏️</button>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:var(--blue);margin-bottom:8px">🎯 BƯỚC 3 — NHẬP LINK TARGET</div>
+      <input id="sv-target" class="field-input" type="text" placeholder="https://www.facebook.com/username hoặc UID..." style="margin-bottom:10px">
+      <div class="field-label" style="font-size:12px;margin-bottom:6px">👤 Tên nạn nhân (tuỳ chọn)</div>
+      <input id="sv-victim-name" class="field-input" type="text" placeholder="VD: Nguyễn Văn A..." style="font-size:13px;margin-bottom:14px"/>
+      <div id="sv-err2" class="auth-err" style="margin-bottom:8px"></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="svWizardTargetConfirm()"><span class="sb-item-icon" style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Xác nhận Target →</button>
+      <button class="btn btn-outline" style="width:100%;padding:10px;font-size:12px;margin-top:8px" onclick="svWizardBack(3)">← Đổi cookie</button>
+    </div>
+
+    <!-- ── BƯỚC 3: XÁC NHẬN & CHẠY ── -->
+    <div id="sv-step-4" style="display:none">
+      <div style="background:var(--glass2);border-radius:14px;padding:14px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:10px">📋 Tóm tắt cấu hình</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🖥 Slot</span><span id="sv-sum-slot" style="font-weight:700;color:var(--blue)">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">📛 Tên</span><span id="sv-sum-name" style="font-weight:700;color:var(--text)">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🍪 Cookie acc</span><span id="sv-sum-acc" style="font-weight:700;color:var(--green)">—</span></div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">👤 Nạn nhân</span><span id="sv-sum-victim" style="font-weight:700;color:var(--red)">—</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">🔗 Target</span><span id="sv-sum-target" style="font-family:monospace;font-size:10px;color:var(--muted);word-break:break-all;max-width:60%;text-align:right">—</span></div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:var(--muted)">🚀 Tốc độ</span>
+            <select id="sv-speed" class="field-input" style="width:auto;padding:4px 10px;font-size:12px">
+              <option value="fast">🏎 Nhanh</option>
+              <option value="normal" selected>⚡ Trung bình</option>
+              <option value="slow">🐢 Chậm (an toàn)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="sv-err3" class="auth-err" style="margin-bottom:10px"></div>
+      <button class="btn btn-primary" id="sv-btn-start" style="width:100%;padding:14px;font-size:15px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px" onclick="svWizardStartAndSave()"><span class="sb-item-icon" style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>Lưu & Chạy ngay</button>
+      <button class="btn" style="width:100%;padding:12px;font-size:13px;background:var(--glass2);border:1px solid var(--border);color:var(--muted)" onclick="svWizardSaveOnly()">💾 Chỉ lưu (chạy sau)</button>
+      <button class="btn btn-outline" style="width:100%;padding:10px;font-size:12px;margin-top:6px" onclick="svWizardBack(4)">← Đổi target</button>
+    </div>
+
+    </div><!-- end padding -->
+  </div>
+</div>
+
+<!-- SERVER LIST MODAL - SWIPE CARDS -->
+<div class="modal-overlay" id="server-list-modal" onclick="if(event.target===this)closeModal('server-list-modal')">
+  <div class="modal-box" style="max-width:98vw;width:98vw;padding-bottom:8px;padding-left:10px;padding-right:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin:0">📱 Máy ảo của bạn</div>
+      <button onclick="openCreateServerModal()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#4f9eff,#7c4dff);color:#fff;border:none;border-radius:20px;cursor:pointer;box-shadow:0 3px 12px rgba(79,158,255,.4);white-space:nowrap;letter-spacing:.3px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Tạo mới
+      </button>
+    </div>
+    <div id="server-list-body" style="min-height:80px;overflow-x:hidden;overflow-y:visible;padding:4px 0;margin:0 -10px;padding:4px 10px">
+      <div style="text-align:center;color:var(--muted);padding:24px">⏳ Đang tải...</div>
+    </div>
+    <button class="close-btn" style="margin-top:10px" onclick="closeModal('server-list-modal')">✕ Đóng</button>
+  </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div class="modal-overlay" id="guide-modal" onclick="if(event.target===this)closeModal('guide-modal')">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-title">📖 Hướng dẫn sử dụng FB Dame Tool</div>
+
+    <div class="guide-section-title">🚀 Cách sử dụng</div>
+
+    <div class="guide-step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Lấy Cookie Facebook</h4>
+        <p>Mở <b>Facebook.com</b> trên Chrome/Edge → <b>F12</b> → Tab <b>Application</b> → <b>Cookies</b> → copy toàn bộ.<br>Hoặc dùng extension <b>EditThisCookie / Cookie-Editor</b> để export dạng string.</p>
+        <div class="tip">💡 Cookie phải từ tài khoản Facebook còn sống, chưa bị checkpoint.</div>
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Dán Cookie vào ô "Cookie Facebook"</h4>
+        <p>Paste cookie string vào ô đầu tiên. Bấm <b>✅ Kiểm tra</b> để xác nhận cookie còn sống và lấy tên tài khoản.</p>
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Nhập link / UID target</h4>
+        <p>Dán link profile Facebook cần dame, ví dụ:<br>
+        <b>https://www.facebook.com/username</b><br>hoặc nhập UID số trực tiếp.</p>
+      </div>
+    </div>
+
+    <div class="guide-step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Chọn tốc độ và bấm Bắt đầu</h4>
+        <p>Chọn tốc độ phù hợp rồi bấm <b>🐬 Bắt đầu Dame</b>. Theo dõi trạng thái ở tab <b>📊 Trạng thái</b>.</p>
+        <div class="tip">💡 Tốc độ "Chậm" ít bị rate limit hơn, dùng khi cookie yếu.</div>
+      </div>
+    </div>
+
+    <div class="guide-divider"></div>
+    <div class="guide-section-title">⚠️ Lưu ý</div>
+
+    <div class="guide-step">
+      <div class="step-num">⚠️</div>
+      <div class="step-content">
+        <h4>Những việc làm hỏng cookie</h4>
+        <p>❌ Đăng xuất Facebook trên trình duyệt gốc<br>
+        ❌ Đổi mật khẩu Facebook<br>
+        ❌ Bật xác thực 2 lớp sau khi lấy cookie<br>
+        ❌ Facebook phát hiện đăng nhập bất thường</p>
+      </div>
+    </div>
+
+    <button class="close-btn" onclick="closeModal('guide-modal')">✕ Đóng</button>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-overlay" id="history-modal" onclick="if(event.target===this)closeModal('history-modal')">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-title">🐬 Lịch sử Dame <span id="hist-count" style="font-size:13px;font-weight:400;color:var(--muted)"></span></div>
+    <div id="hist-list"></div>
+    <div class="page-nav" id="hist-pages"></div>
+    <button class="close-btn" onclick="closeModal('history-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- HIST DETAIL MODAL -->
+<div class="modal-overlay" id="hist-detail-modal" onclick="if(event.target===this)closeModal('hist-detail-modal')">
+  <div class="modal-box">
+    <div class="modal-title">🔍 Chi tiết cookie</div>
+    <div id="hist-detail-content"></div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-green" onclick="copyHistDetailCookie(this)" style="display:flex;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>Copy Cookie</button>
+      <button class="btn btn-primary" onclick="downloadHistDetail()" style="display:flex;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Tải .txt</button>
+    </div>
+    <button class="close-btn" onclick="closeModal('hist-detail-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- USER DETAIL MODAL -->
+<div class="modal-overlay" id="user-detail-modal" onclick="if(event.target===this)closeModal('user-detail-modal')">
+  <div class="modal-box">
+    <div class="modal-title">🔍 Chi tiết tài khoản</div>
+    <div id="user-detail-content"></div>
+    <button class="close-btn" onclick="closeModal('user-detail-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- SERVER DETAIL MODAL -->
+<div class="modal-overlay" id="sv-detail-modal" onclick="if(event.target===this)closeDetailModal()" style="z-index:10000">
+  <div class="modal-box" style="max-width:480px;max-height:88vh;overflow-y:auto;padding:0;box-sizing:border-box;width:calc(100vw - 40px)">
+    <div style="background:linear-gradient(135deg,rgba(13,19,34,.98),rgba(11,18,29,.98));border-radius:18px;overflow:hidden">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.07)">
+        <div class="sv2-status-dot" id="det-dot" style="width:12px;height:12px"></div>
+        <div style="font-size:15px;font-weight:800;flex:1" id="det-name">Máy chủ</div>
+        <span class="sv2-status-badge" id="det-badge">--</span>
+      </div>
+      <!-- Screenshot -->
+      <div style="position:relative;background:#000;min-height:60px" id="det-scr-wrap">
+        <div id="det-scr-ph" style="display:flex;align-items:center;justify-content:center;height:80px;color:var(--muted);font-size:12px">📷 Chưa có ảnh</div>
+        <img id="det-scr-img" style="display:none;width:100%;object-fit:contain;max-height:220px" alt="screenshot"/>
+      </div>
+      <!-- Stats row -->
+      <div style="display:flex;gap:8px;padding:12px 14px">
+        <div class="sv2-stat" style="flex:1"><div class="sv2-stat-val" id="det-total">0</div><div class="sv2-stat-label">📊 Báo cáo</div></div>
+        <div class="sv2-stat" style="flex:1"><div class="sv2-stat-val" style="color:var(--cyan)" id="det-loops">0</div><div class="sv2-stat-label">🔄 Vòng lặp</div></div>
+        <div class="sv2-stat" style="flex:1"><div class="sv2-stat-val" style="color:var(--yellow);font-size:13px" id="det-uptime">00:00:00</div><div class="sv2-stat-label">⏱ Thời gian</div></div>
+      </div>
+      <!-- Meta info -->
+      <div style="padding:0 14px 10px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="sv2-meta-item" style="flex:1;min-width:120px"><div class="sv2-meta-label">🎯 Nạn nhân</div><div class="sv2-meta-val" id="det-victim">?</div></div>
+          <div class="sv2-meta-item" style="flex:1;min-width:120px"><div class="sv2-meta-label">🍪 Acc</div><div class="sv2-meta-val" id="det-acc">?</div></div>
+          <div class="sv2-meta-item" style="flex:1;min-width:120px"><div class="sv2-meta-label">🚀 Tốc độ</div><div class="sv2-meta-val" id="det-speed">?</div></div>
+          <div class="sv2-meta-item" style="flex:1;min-width:120px"><div class="sv2-meta-label">📅 Tạo lúc</div><div class="sv2-meta-val" id="det-created">?</div></div>
+        </div>
+      </div>
+      <!-- Full log area -->
+      <div style="padding:0 14px 10px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px">📋 Log chi tiết</div>
+        <div id="det-log" style="background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;font-size:10px;font-family:monospace;color:rgba(79,158,255,.7);max-height:220px;overflow-y:auto;line-height:1.7;scrollbar-width:thin">⏳ Đang tải log...</div>
+        <button onclick="clearDetLog()" style="margin-top:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--muted);font-size:11px;padding:4px 12px;cursor:pointer">🗑 Xóa log</button>
+      </div>
+      <!-- Actions -->
+      <div style="padding:0 14px 8px" id="det-actions"></div>
+      <!-- Close -->
+      <div style="padding:0 14px 14px"><button class="close-btn" onclick="closeDetailModal()" style="width:100%;margin:0">✕ Đóng</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN USER MANAGEMENT MODAL -->
+<!-- ═══ ADMIN PANEL MODAL ═══ -->
+<div class="modal-overlay" id="mgmt-modal" onclick="if(event.target===this)closeModal('mgmt-modal')">
+  <div class="modal-box" style="max-width:760px;padding:0;overflow:hidden">
+    <div style="padding:16px 20px 0;background:linear-gradient(135deg,rgba(255,193,7,.08),rgba(255,152,0,.08));border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:17px;font-weight:800">👑 Admin Panel</div>
+        <button onclick="closeModal('mgmt-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <div style="display:flex;gap:0;border-radius:10px 10px 0 0;overflow:hidden;background:var(--glass2)">
+        <div class="mgmt-tab active" id="mtab-users" onclick="switchMgmtTab('users')">👥 Tài khoản</div>
+        <div class="mgmt-tab" id="mtab-balance" onclick="switchMgmtTab('balance')">💰 Tiền</div>
+        <div class="mgmt-tab" id="mtab-deposits" onclick="switchMgmtTab('deposits')">📋 Đơn nạp</div>
+        <div class="mgmt-tab" id="mtab-chat" onclick="switchMgmtTab('chat')" style="position:relative">💬 Chat<span id="admin-chat-unread-badge" style="display:none;position:absolute;top:4px;right:6px;width:8px;height:8px;border-radius:50%;background:#ff4d4d"></span></div>
+      </div>
+    </div>
+    <div style="padding:16px 20px 20px;max-height:70vh;overflow-y:auto">
+
+      <!-- TAB: DANH SÁCH TK -->
+      <div id="mgmt-panel-users">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap">
+          <div style="font-size:13px;color:var(--muted)" id="mgmt-count"></div>
+          <button class="btn btn-primary" style="padding:7px 14px;font-size:12px" onclick="openCreateUserModal()">➕ Tạo tài khoản</button>
+        </div>
+        <div id="mgmt-list"></div>
+        <div class="page-nav" id="mgmt-pages"></div>
+      </div>
+
+      <!-- TAB: CỘNG / TRỪ TIỀN -->
+      <div id="mgmt-panel-balance" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <!-- Cộng tiền -->
+          <div style="background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.25);border-radius:14px;padding:16px">
+            <div style="font-size:14px;font-weight:800;color:var(--green);margin-bottom:12px">➕ Cộng tiền</div>
+            <div class="field-label" style="margin-bottom:6px">Username</div>
+            <input class="field-input" id="bal-add-user" placeholder="Nhập username" style="margin-bottom:10px">
+            <div class="field-label" style="margin-bottom:6px">Số tiền (đ)</div>
+            <input class="field-input" id="bal-add-amt" type="number" placeholder="VD: 100000" style="margin-bottom:10px">
+            <button class="btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#00c853,#00e676);color:#000;font-weight:800;border-radius:10px" onclick="adminAddBalance()">💚 Cộng tiền</button>
+            <div id="bal-add-msg" style="font-size:12px;margin-top:8px;min-height:18px;text-align:center"></div>
+          </div>
+          <!-- Trừ tiền -->
+          <div style="background:rgba(255,82,82,.07);border:1px solid rgba(255,82,82,.25);border-radius:14px;padding:16px">
+            <div style="font-size:14px;font-weight:800;color:var(--red);margin-bottom:12px">➖ Trừ tiền</div>
+            <div class="field-label" style="margin-bottom:6px">Username</div>
+            <input class="field-input" id="bal-sub-user" placeholder="Nhập username" style="margin-bottom:10px">
+            <div class="field-label" style="margin-bottom:6px">Số tiền (đ)</div>
+            <input class="field-input" id="bal-sub-amt" type="number" placeholder="VD: 50000" style="margin-bottom:10px">
+            <button class="btn" style="width:100%;padding:10px;background:linear-gradient(135deg,#c62828,#ff5252);color:#fff;font-weight:800;border-radius:10px" onclick="adminSubBalance()">❤️‍🔥 Trừ tiền</button>
+            <div id="bal-sub-msg" style="font-size:12px;margin-top:8px;min-height:18px;text-align:center"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: ĐƠN NẠP -->
+      <div id="mgmt-panel-deposits" style="display:none">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Danh sách yêu cầu nạp tiền từ user</div>
+        <div id="admin-deposit-list"></div>
+      </div>
+
+      <!-- TAB: CHAT -->
+      <div id="mgmt-panel-chat" style="display:none">
+        <div style="display:flex;gap:0;height:420px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+          <!-- Danh sách thread bên trái -->
+          <div id="admin-chat-thread-list" style="width:200px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--glass)">
+            <div style="padding:10px 12px;font-size:11px;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);background:var(--glass2)">HỘP THƯ</div>
+            <div id="admin-thread-items" style="display:flex;flex-direction:column"></div>
+          </div>
+          <!-- Khung chat bên phải -->
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+            <div id="admin-chat-header" style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;background:var(--glass2);display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <span id="admin-chat-target-name" style="color:var(--muted)">← Chọn user để xem tin nhắn</span>
+            </div>
+            <div id="admin-chat-messages" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;text-align:center;opacity:.5"><div style="font-size:48px">👈</div><div style="font-size:13px;font-weight:700;color:var(--muted)">Chọn user để xem tin nhắn</div></div></div>
+            <div id="admin-chat-input-row" style="display:none;padding:8px 10px;border-top:1px solid var(--border);background:var(--bg);gap:6px;align-items:flex-end">
+              <textarea id="admin-reply-text" placeholder="Nhập reply..." rows="1" style="flex:1;background:var(--glass2);border:none;border-radius:10px;padding:8px 11px;color:var(--text);font-size:13px;resize:none;outline:none;font-family:inherit;max-height:80px;overflow-y:auto" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();adminChatReply();}"></textarea>
+              <button onclick="adminChatReply()" style="height:36px;padding:0 14px;border-radius:10px;background:linear-gradient(135deg,#ffd740,#ff9800);border:none;cursor:pointer;font-size:13px;font-weight:800;color:#000;flex-shrink:0">Gửi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE USER MODAL -->
+<div class="modal-overlay" id="create-user-modal" onclick="if(event.target===this)closeModal('create-user-modal')">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-title">➕ Tạo tài khoản mới</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><div class="field-label">Username</div><input class="field-input" id="cu-user" placeholder="Tối thiểu 4 ký tự"></div>
+      <div><div class="field-label">Mật khẩu</div><input class="field-input" id="cu-pass" type="password" placeholder="Tối thiểu 6 ký tự"></div>
+      <div><div class="field-label">Email</div><input class="field-input" id="cu-email" type="email" placeholder="example@gmail.com"></div>
+      <div id="cu-err" style="color:var(--red);font-size:12px;min-height:16px"></div>
+      <button class="btn btn-primary" style="padding:12px" onclick="doCreateUser()">✅ Tạo tài khoản</button>
+    </div>
+    <button class="close-btn" style="margin-top:10px" onclick="closeModal('create-user-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL (nạp tiền) -->
+<div class="modal-overlay" id="deposit-modal" onclick="if(event.target===this)closeModal('deposit-modal')">
+  <div class="modal-box" style="max-width:420px;padding:0;overflow:hidden">
+    <div style="padding:16px 20px;background:linear-gradient(135deg,rgba(0,230,118,.08),rgba(41,121,255,.08));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:16px;font-weight:800">💰 Nạp tiền</div>
+      <button onclick="closeModal('deposit-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:18px 20px">
+      <!-- Bước 1: chọn số tiền -->
+      <div id="dep-step1">
+        <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.5px">CHỌN SỐ TIỀN NẠP</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px" id="dep-amount-btns">
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,20000)">20K</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,50000)">50K</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,100000)">100K</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,200000)">200K</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,500000)">500K</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,1000000)">1M</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,2000000)">2M</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,5000000)">5M</button>
+          <button class="dep-amt-btn" onclick="selectDepAmt(this,10000000)">10M</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">HOẶC NHẬP SỐ TIỀN KHÁC (tối thiểu 20.000đ)</div>
+        <input class="field-input" id="dep-custom-amt" type="number" placeholder="Ví dụ: 300000" oninput="onDepCustomInput(this.value)" style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--glass2);border-radius:10px;margin-bottom:14px">
+          <span style="font-size:13px;color:var(--muted)">Số tiền đã chọn:</span>
+          <span style="font-size:16px;font-weight:800;color:var(--green)" id="dep-selected-display">—</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="doCreateDeposit()">🏦 XEM THÔNG TIN CHUYỂN KHOẢN →</button>
+        <div id="dep-err1" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center"></div>
+      </div>
+      <!-- Bước 2: hiện QR + thông tin bank -->
+      <div id="dep-step2" style="display:none">
+        <div style="text-align:center;margin-bottom:14px">
+          <img id="dep-qr-img" src="" alt="QR" style="width:200px;height:200px;border-radius:16px;border:3px solid var(--green);box-shadow:0 0 20px rgba(0,230,118,.3)">
+        </div>
+        <div style="background:var(--glass2);border-radius:14px;padding:14px;margin-bottom:14px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--muted)">Ngân hàng</span><b id="dep-bank-name">BIDV</b></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--muted)">Số tài khoản</span><b id="dep-bank-num" style="letter-spacing:1px"></b></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--muted)">Chủ tài khoản</span><b id="dep-bank-owner"></b></div>
+          <div style="height:1px;background:var(--border);margin:8px 0"></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--muted)">Số tiền</span><b style="color:var(--green)" id="dep-bank-amount"></b></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="color:var(--muted)">Nội dung CK</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <b id="dep-bank-content" style="font-family:monospace;font-size:12px;color:var(--yellow)"></b>
+              <button onclick="copyDepContent()" style="background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--yellow);cursor:pointer">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(255,193,7,.08);border:1px solid rgba(255,193,7,.25);border-radius:10px;padding:10px 12px;font-size:11.5px;color:var(--yellow);line-height:1.7;margin-bottom:14px">
+          ⚠️ Vui lòng chuyển khoản <b>đúng nội dung</b> và <b>đúng số tiền</b>. Admin sẽ duyệt trong vài phút.
+        </div>
+        <button class="btn btn-outline" style="width:100%;padding:11px" onclick="resetDepModal()">← Chọn số tiền khác</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VPS SHOP MODAL -->
+<div class="modal-overlay" id="vps-shop-modal" onclick="if(event.target===this)closeModal('vps-shop-modal')">
+  <div class="modal-box" style="max-width:700px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:88vh">
+    <!-- Header cố định -->
+    <div style="padding:14px 18px 0;background:linear-gradient(135deg,rgba(124,77,255,.12),rgba(41,121,255,.1));border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:16px;font-weight:800">📱 Mua Máy ảo / Phone ảo</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Số dư: <b style="color:var(--green)" id="vps-shop-balance">0đ</b> · Máy ảo: <b style="color:var(--cyan)" id="vps-shop-slots">0</b></div>
+        </div>
+        <button onclick="closeModal('vps-shop-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <!-- 4 tab ngang cố định: Ngày / Tuần / Tháng / Năm -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:0">
+        <button class="vps-main-tab active" id="vmtab-day" onclick="switchVpsTab('day',this)">📅<br><span>Ngày</span></button>
+        <button class="vps-main-tab" id="vmtab-week" onclick="switchVpsTab('week',this)">📆<br><span>Tuần</span></button>
+        <button class="vps-main-tab" id="vmtab-month" onclick="switchVpsTab('month',this)">🗓<br><span>Tháng</span></button>
+        <button class="vps-main-tab" id="vmtab-year" onclick="switchVpsTab('year',this)">🗃<br><span>Năm</span></button>
+      </div>
+    </div>
+
+    <!-- Nội dung scroll -->
+    <div style="overflow-y:auto;flex:1;padding:14px 16px 20px">
+
+      <!-- Tab Ngày / Tuần / Tháng / Năm: hiện grid gói theo tab -->
+      <div id="vps-tab-panel-plans">
+        <!-- Máy lẻ (custom) -->
+        <div style="background:linear-gradient(135deg,rgba(79,158,255,.08),rgba(124,77,255,.06));border:1.5px solid rgba(79,158,255,.25);border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            🛒 Mua máy lẻ — chọn số lượng &amp; thời hạn
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px">📱 Số máy ảo</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="adjustCustomSlot(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:18px;cursor:pointer;font-weight:700">−</button>
+                <div id="custom-slot-val" style="font-size:22px;font-weight:900;color:var(--cyan);min-width:36px;text-align:center">1</div>
+                <button onclick="adjustCustomSlot(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:18px;cursor:pointer;font-weight:700">+</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px">⏱ Thời hạn</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="adjustCustomDay(-1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:18px;cursor:pointer;font-weight:700">−</button>
+                <div id="custom-day-val" style="font-size:16px;font-weight:900;color:var(--purple);min-width:54px;text-align:center">1 ngày</div>
+                <button onclick="adjustCustomDay(1)" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:18px;cursor:pointer;font-weight:700">+</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;color:var(--muted)">Tổng tiền</div>
+              <div id="custom-price-val" style="font-size:20px;font-weight:900;color:var(--green)">30.000đ</div>
+            </div>
+            <button onclick="buyCustomSlot()" style="padding:10px 20px;border:none;border-radius:12px;background:linear-gradient(135deg,#2979ff,#7c4dff);color:#fff;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(41,121,255,.35)">🛒 Mua ngay</button>
+          </div>
+        </div>
+
+      <!-- Hot Deal section in shop -->
+      <div id="hot-deal-shop-section" style="margin-bottom:18px;display:none"></div>
+
+        <!-- Gói nhanh theo tab -->
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px" id="vps-tab-label">📅 Gói theo ngày</div>
+        <div id="vps-plans-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px"></div>
+      </div>
+
+      <!-- Combo section (luôn hiện, scroll dọc bên dưới) -->
+      <div style="margin-top:18px">
+        <div style="font-size:12px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          🎁 Combo đặc biệt
+          <span style="font-size:10px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">— tiết kiệm hơn mua lẻ</span>
+        </div>
+        <div id="vps-combo-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- VPS CONFIRM BUY -->
+<div class="modal-overlay" id="vps-confirm-modal" onclick="if(event.target===this)closeModal('vps-confirm-modal')">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-title">🛒 Xác nhận mua</div>
+    <div id="vps-confirm-content" style="font-size:13px;line-height:1.8;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1;padding:12px" onclick="doVpsBuy()">✅ Xác nhận mua</button>
+      <button class="btn btn-outline" style="flex:1;padding:12px" onclick="closeModal('vps-confirm-modal')">Hủy</button>
+    </div>
+    <div id="vps-confirm-err" style="color:var(--red);font-size:12px;margin-top:8px;text-align:center;min-height:16px"></div>
+  </div>
+</div>
+
+<!-- MY VPS MODAL -->
+<div class="modal-overlay" id="my-vps-modal" onclick="if(event.target===this)closeModal('my-vps-modal')">
+  <div class="modal-box" style="max-width:600px;padding:0;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:16px;font-weight:800">📱 📱 Máy ảo của tôi</div>
+      <button onclick="closeModal('my-vps-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:16px 20px 20px;max-height:70vh;overflow-y:auto" id="my-vps-list"></div>
+  </div>
+</div>
+
+<!-- ACCOUNT INFO MODAL — chototmmo style -->
+<div class="modal-overlay" id="account-info-modal" onclick="if(event.target===this)closeModal('account-info-modal')">
+  <div class="modal-box" style="max-width:440px;padding:0;overflow:hidden;border-radius:20px">
+    <!-- Banner + Avatar -->
+    <div style="position:relative;height:130px;background:linear-gradient(135deg,#1a2a6c,#4f9eff,#7c4dff);overflow:visible">
+      <button onclick="closeModal('account-info-modal')" style="position:absolute;top:10px;right:12px;background:rgba(0,0,0,.3);border:none;color:#fff;font-size:18px;cursor:pointer;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2">✕</button>
+      <!-- Stars decorative -->
+      <div style="position:absolute;inset:0;opacity:.4;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22100%22><circle cx=%2220%22 cy=%2215%22 r=%221.5%22 fill=%22white%22/><circle cx=%2270%22 cy=%2235%22 r=%221%22 fill=%22white%22/><circle cx=%22130%22 cy=%2210%22 r=%222%22 fill=%22white%22/><circle cx=%22160%22 cy=%2250%22 r=%221.5%22 fill=%22white%22/><circle cx=%2250%22 cy=%2260%22 r=%221%22 fill=%22white%22/><circle cx=%22100%22 cy=%2225%22 r=%221.2%22 fill=%22white%22/><circle cx=%22180%22 cy=%2280%22 r=%221%22 fill=%22white%22/></svg>')"></div>
+      <!-- Avatar -->
+      <div style="position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);z-index:3">
+        <div style="position:relative;width:84px">
+          <div id="ai-avatar-circle" style="width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden;border:4px solid #1a2040;box-shadow:0 4px 20px rgba(0,0,0,.5)">
+            <img id="ai-avatar-img" style="display:none;width:100%;height:100%;object-fit:cover" alt="avatar"/>
+            <span id="ai-avatar-icon">👤</span>
+          </div>
+          <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('ai-avatar-input').click()" title="Đổi ảnh đại diện" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:#4f9eff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #1a2040">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="13" height="13"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <input type="file" id="ai-avatar-input" accept="image/*" style="display:none" onchange="handleAvatarChange(this)">
+        </div>
+      </div>
+    </div>
+    <!-- Body -->
+    <div style="padding:50px 20px 20px;background:var(--bg);overflow-y:auto;max-height:calc(90vh - 130px)">
+      <!-- Name + badge -->
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:20px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap" id="ai-username">—</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <span style="background:rgba(79,158,255,.15);color:#4f9eff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(79,158,255,.3)" id="ai-role">Thành viên</span>
+          <span id="ai-slot-badge" style="background:rgba(0,200,130,.15);color:#00c882;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(0,200,130,.3)">0 máy ảo</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">@ <span id="ai-username-at">—</span> · Tham gia: <span id="ai-created">—</span></div>
+      </div>
+      <!-- Wallet card -->
+      <div style="background:linear-gradient(135deg,rgba(79,158,255,.12),rgba(124,77,255,.12));border:1px solid rgba(79,158,255,.2);border-radius:16px;padding:16px;margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">💰 Số dư hiện tại</div>
+        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px" id="ai-balance">0đ</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary" style="flex:1;padding:9px;font-size:13px;border-radius:12px" onclick="closeModal('account-info-modal');openDepositModal()">🏦 Nạp tiền</button>
+          <button class="btn" style="flex:1;padding:9px;font-size:13px;background:var(--glass2);color:var(--text);border-radius:12px" onclick="closeModal('account-info-modal');openVpsShop()">📱 Mua máy ảo</button>
+        </div>
+      </div>
+      <!-- 2 card tổng nạp / đã dùng -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="background:linear-gradient(135deg,rgba(255,193,7,.08),rgba(255,152,0,.06));border:1px solid rgba(255,193,7,.25);border-left:3px solid #ffc107;border-radius:14px;padding:12px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <span style="font-size:16px">🪙</span>
+            <span style="font-size:10px;font-weight:800;color:#ffc107;text-transform:uppercase;letter-spacing:.5px">Tổng nạp</span>
+          </div>
+          <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:-.5px" id="ai-total-deposited">0đ</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(0,200,130,.08),rgba(0,150,100,.06));border:1px solid rgba(0,200,130,.25);border-left:3px solid #00c882;border-radius:14px;padding:12px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <span style="font-size:16px">✅</span>
+            <span style="font-size:10px;font-weight:800;color:#00c882;text-transform:uppercase;letter-spacing:.5px">Đã dùng</span>
+          </div>
+          <div style="font-size:18px;font-weight:900;color:#fff;letter-spacing:-.5px" id="ai-total-spent">0đ</div>
+        </div>
+      </div>
+      <!-- Info row -->
+      <div style="background:var(--glass2);border-radius:14px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+          <span style="color:var(--muted);font-size:13px;width:80px;flex-shrink:0">📧 Email</span>
+          <b id="ai-email" style="font-size:13px;word-break:break-all">—</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+          <span style="color:var(--muted);font-size:13px;width:80px;flex-shrink:0">📱 Máy ảo</span>
+          <b id="ai-slots" style="font-size:13px;color:var(--cyan)">0 máy ảo</b>
+        </div>
+      </div>
+      <!-- History buttons -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn" style="flex:1;padding:10px;font-size:13px;background:rgba(0,200,130,.1);color:#00c882;border:1px solid rgba(0,200,130,.2);border-radius:12px" onclick="closeModal('account-info-modal');openDepositHistoryModal()">💰 Lịch sử nạp</button>
+        <button class="btn" style="flex:1;padding:10px;font-size:13px;background:rgba(168,85,247,.1);color:#a855f7;border:1px solid rgba(168,85,247,.2);border-radius:12px" onclick="closeModal('account-info-modal');openPurchaseHistoryModal()">🛒 Lịch sử mua</button>
+      </div>
+      <!-- Đổi mật khẩu -->
+      <div style="background:var(--glass2);border-radius:14px;padding:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px">🔐 Đổi mật khẩu</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input class="field-input" id="ai-oldpw" type="password" placeholder="Mật khẩu hiện tại">
+          <input class="field-input" id="ai-newpw" type="password" placeholder="Mật khẩu mới (≥6 ký tự)">
+          <input class="field-input" id="ai-newpw2" type="password" placeholder="Xác nhận mật khẩu mới">
+          <div id="ai-pw-err" style="color:var(--red);font-size:12px;min-height:16px"></div>
+          <button class="btn btn-primary" style="padding:11px;border-radius:12px" onclick="doChangePw()">Cập nhật mật khẩu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN APP (hidden until login)
+════════════════════════════════════════════════════════ -->
+<div id="app-screen" style="display:none">
+<div class="wrap">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="logo-text">🐬 FB Dame Tool</div>
+        <div class="logo-sub">by Dzi Meo Meo · IT Automation</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="user-badge" id="user-badge-el">👤 ...</div>
+      <div id="chat-icon-btn" onclick="openInboxPage()" title="Hộp thư" style="width:38px;height:38px;border-radius:12px;background:var(--glass2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span id="chat-unread-dot" style="display:none;position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff4d4d;border:1.5px solid var(--bg1)"></span>
+      </div>
+      <div class="hamburger-btn" onclick="toggleMenu()" title="Menu">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee">🐬 FB Dame Tool · © 2026 Bản quyền thuộc về Nguyễn Hoàng Khánh Nam (Dzi Meo Meo) · IT Automation Developer · Nhập cookie Facebook + link target để dame acc · Không chia sẻ cookie với người khác · All rights reserved.</div>
+  </div>
+
+  <!-- SUPPORT BUTTONS -->
+  <div class="support-wrap">
+    <div class="support-btn" onclick="openModal('admin-modal')"><span class="sb-item-icon ic-orange"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9632" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>Thông tin Admin</div>
+    <div class="support-btn" onclick="openModal('guide-modal')"><span class="sb-item-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#00c882" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>Hướng dẫn sử dụng</div>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="card">
+    <div class="tabs" style="margin-bottom:18px">
+      <div class="tab active" id="tab-input-btn" onclick="switchMainTab('input')" style="display:flex;align-items:center;justify-content:center;gap:6px"><span class="sb-item-icon ic-blue" style="width:24px;height:24px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></span>Nhập & Chạy</div>
+      <div class="tab" id="tab-run-btn" onclick="switchMainTab('run')" style="display:flex;align-items:center;justify-content:center;gap:6px"><span class="sb-item-icon ic-purple" style="width:24px;height:24px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Trạng thái</div>
+    </div>
+
+    <!-- ════ TAB NHẬP — STEP WIZARD ════ -->
+    <div id="main-tab-input">
+
+      <!-- PROGRESS BAR BƯỚC -->
+      <div style="display:flex;gap:0;margin-bottom:20px;border-radius:12px;overflow:hidden;background:var(--glass2)">
+        <div id="step-bar-1" style="flex:1;padding:9px 0;text-align:center;font-size:12px;font-weight:700;transition:.3s;background:linear-gradient(135deg,var(--blue2),var(--purple));color:#fff">
+          1 · Cookie
+        </div>
+        <div id="step-bar-2" style="flex:1;padding:9px 0;text-align:center;font-size:12px;font-weight:700;transition:.3s;color:var(--muted)">
+          2 · Target
+        </div>
+        <div id="step-bar-3" style="flex:1;padding:9px 0;text-align:center;font-size:12px;font-weight:700;transition:.3s;color:var(--muted)">
+          3 · Bắt đầu
+        </div>
+      </div>
+
+
+      <!-- ── BƯỚC 1: NHẬP COOKIE ── -->
+      <div id="step1">
+        <div class="field-label" style="font-size:15px;margin-bottom:6px">🍪 Bước 1 — Nhập Cookie Facebook</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;line-height:1.6">
+          Hỗ trợ mọi format: <b>header string</b>, <b>JSON array</b> (Cookie-Editor), nhiều dòng.
+        </div>
+        <textarea id="fb-cookie-input" class="field-input" rows="5"
+          placeholder="Dán cookie vào đây...&#10;VD: datr=xxx; c_user=yyy; xs=zzz&#10;Hoặc JSON từ extension Cookie-Editor"
+          style="resize:vertical;font-family:monospace;font-size:11.5px;line-height:1.6"
+          oninput="detectCookieFormat(this.value)"></textarea>
+        <div id="cookie-format-hint" style="font-size:11px;color:var(--muted);margin-top:4px;min-height:16px"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="pasteCookie()"><span class="sb-item-icon ic-blue" style="width:22px;height:22px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>Dán</button>
+          <button class="btn btn-outline" style="padding:6px 14px;font-size:12px;display:flex;align-items:center;gap:6px" onclick="document.getElementById('fb-cookie-input').value='';hideBox('cookie-verify-box');document.getElementById('cookie-format-hint').textContent=''"><span class="sb-item-icon ic-red" style="width:22px;height:22px;border-radius:6px"><svg viewBox="0 0 24 24" fill="none" stroke="#ff5050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></span>Xóa</button>
+        </div>
+        <div id="cookie-verify-box" style="display:none;margin-top:12px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.7"></div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-primary" id="btn-verify-cookie" onclick="stepVerifyCookie()" style="display:flex;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg></span>Xác nhận Cookie</button>
+        </div>
+        <div id="step1-err" class="auth-err" style="margin-top:8px"></div>
+
+        <!-- Đặt tên tab -->
+        <div style="margin-top:14px">
+          <div class="field-label" style="font-size:12px;margin-bottom:6px">🏷️ Tên tab (tuỳ chọn)</div>
+          <input id="tab-name-input" class="field-input" type="text" placeholder="VD: Acc chính, Nick dự phòng..."
+            style="font-size:13px"/>
+        </div>
+
+      </div><!-- /#step1 -->
+
+      <!-- ── BƯỚC 2: NHẬP TARGET ── -->
+      <div id="step2" style="display:none">
+        <!-- Thông tin acc đang dùng -->
+        <div id="acc-confirmed-box" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);margin-bottom:16px">
+          <div style="font-size:28px">🍪</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--green)" id="acc-confirmed-name">—</div>
+            <div style="font-size:11px;color:var(--green)">✅ Cookie hợp lệ</div>
+          </div>
+          <button onclick="resetToStep1()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px" title="Đổi cookie">✏️</button>
+        </div>
+
+        <div class="field-label" style="font-size:15px;margin-bottom:8px">🎯 Bước 2 — Nhập Link Target</div>
+        <input id="fb-target-input" class="field-input" type="text"
+          placeholder="https://www.facebook.com/username hoặc UID số..." style="margin-bottom:10px">
+
+        <div class="field-label" style="font-size:12px;margin-bottom:6px">👤 Tên nạn nhân (tuỳ chọn)</div>
+        <input id="victim-name-input" class="field-input" type="text"
+          placeholder="VD: Nguyễn Văn A..." style="font-size:13px;margin-bottom:10px">
+
+        <div id="target-verify-box" style="display:none;margin-top:12px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.7"></div>
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn btn-primary" id="btn-verify-target" onclick="stepVerifyTarget()" style="display:flex;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Xác nhận Target</button>
+        </div>
+        <div id="step2-err" class="auth-err" style="margin-top:8px"></div>
+      </div>
+
+      <!-- ── BƯỚC 3: XÁC NHẬN & BẮT ĐẦU ── -->
+      <div id="step3" style="display:none">
+        <!-- Tóm tắt -->
+        <div style="background:var(--glass2);border-radius:14px;padding:14px;margin-bottom:16px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--blue)">📋 Tóm tắt dame</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">🏷️ Tên tab</span>
+              <span id="sum-tab-name" style="font-weight:700;color:var(--blue)">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">🍪 Cookie</span>
+              <span id="sum-acc-name" style="font-weight:700;color:var(--green)">—</span>
+            </div>
+            <div style="height:1px;background:var(--glass3)"></div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">👤 Nạn nhân</span>
+              <span id="sum-target-name" style="font-weight:700;color:var(--red)">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">🔗 Target URL</span>
+              <span id="sum-target-url" style="font-family:monospace;font-size:11px;color:var(--muted);word-break:break-all;max-width:65%;text-align:right">—</span>
+            </div>
+            <div style="height:1px;background:var(--glass3)"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="color:var(--muted)">🚀 Tốc độ</span>
+              <select id="speed-select" class="field-input" style="cursor:pointer;width:auto;padding:4px 10px;font-size:12px">
+                <option value="fast">🏎️ Nhanh</option>
+                <option value="normal" selected>⚡ Trung bình</option>
+                <option value="slow">🐢 Chậm (An toàn)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-start-dame" onclick="startDame()" style="flex:1;padding:14px;font-size:15px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <span class="sb-item-icon" style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+            Bắt đầu Dame
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-outline" style="flex:1;font-size:12px" onclick="resetToStep2()">← Đổi target</button>
+          <button class="btn btn-outline" style="flex:1;font-size:12px" onclick="resetToStep1()">↩ Đổi cookie</button>
+        </div>
+        <div id="step3-err" class="auth-err" style="margin-top:8px"></div>
+      </div>
+
+    </div><!-- end main-tab-input -->
+
+    <!-- TAB TRẠNG THÁI -->
+    <div id="main-tab-run" style="display:none">
+      <div class="status-row">
+        <div class="dot" id="run-dot"></div>
+        <span id="run-status-text">Chưa chạy</span>
+      </div>
+
+      <!-- INFO ACC ĐANG DÙNG -->
+      <div id="run-acc-info" style="display:none;margin-bottom:14px">
+        <div class="acc-card">
+          <div class="avatar-circle">👤</div>
+          <div>
+            <div class="acc-name" id="run-acc-name">—</div>
+            <div class="acc-sub" style="font-size:11px;color:var(--blue);margin-top:2px" id="run-victim-name">Nạn nhân: —</div>
+            <div class="acc-sub" id="run-target-url" style="font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all">Target: —</div>
+          </div>
+        </div>
+        <!-- Badge DIE -->
+        <div id="die-badge" style="display:none;margin-top:10px;padding:12px 14px;border-radius:12px;background:rgba(255,50,50,.12);border:1.5px solid rgba(255,50,50,.4);text-align:center">
+          <div style="font-size:22px;margin-bottom:4px">💀</div>
+          <div style="font-weight:800;color:#ff4444;font-size:15px">ACC ĐÃ DIE</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Facebook báo lỗi kỹ thuật → acc bị khoá/die</div>
+          <img id="die-screenshot" src="" alt="Die screenshot"
+            style="display:none;max-width:100%;border-radius:10px;margin-top:10px;border:1px solid rgba(255,50,50,.3)"/>
+        </div>
+      </div>
+
+      <!-- THỐNG KÊ -->
+      <div class="info-row" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--muted)">📈 Báo cáo đã gửi</span>
+          <span id="run-total" style="font-size:22px;font-weight:800;color:var(--blue)">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;color:var(--muted)">🔄 Vòng lặp</span>
+          <span id="run-loops" style="font-weight:700">0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">⏱️ Uptime</span>
+          <span id="run-uptime" style="font-family:monospace;font-weight:700">00:00:00</span>
+        </div>
+      </div>
+
+      <!-- PROGRESS BAR -->
+      <div style="background:var(--glass2);border-radius:10px;height:6px;margin-bottom:14px;overflow:hidden">
+        <div id="run-progress" style="width:0%;height:100%;background:linear-gradient(90deg,var(--blue2),var(--cyan));border-radius:10px;transition:width .3s"></div>
+      </div>
+
+      <!-- LOG -->
+      <div class="info-row" style="margin-bottom:14px">
+        <div class="info-label">📋 Log</div>
+        <div id="run-log" style="font-size:11px;font-family:monospace;color:var(--muted);max-height:120px;overflow-y:auto;line-height:1.7"></div>
+      </div>
+
+      <!-- ĐIỀU KHIỂN -->
+      <div class="btn-row">
+        <button class="btn btn-outline" id="btn-pause" onclick="togglePause()" style="display:none;align-items:center;gap:8px"><span class="sb-item-icon ic-yellow" style="width:24px;height:24px;border-radius:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#ffc800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></span>Tạm dừng</button>
+        <button class="btn btn-danger" id="btn-stop" onclick="stopDame()" style="display:none;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></span>Dừng</button>
+        <button class="btn btn-primary" id="btn-resume" onclick="togglePause()" style="display:none;align-items:center;gap:8px"><span class="sb-item-icon" style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>Tiếp tục</button>
+        <button class="btn btn-outline" id="btn-back-input" onclick="switchMainTab('input')" style="display:flex;align-items:center;gap:8px"><span class="sb-item-icon ic-blue" style="width:24px;height:24px;border-radius:7px"><svg viewBox="0 0 24 24" fill="none" stroke="#4f9eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="15 18 9 12 15 6"/></svg></span>Quay lại</button>
+      </div>
+      <!-- SERVERS INLINE + NÚT XEM TAB MÁY ẢO -->
+      <div class="sv-inline-ss" id="sv-inline-wrap" style="margin-top:12px;display:none">
+        <div class="sv-inline-ss-wrap">
+          <div class="sv-inline-ss-bar">
+            <div class="sv-inline-ss-dot" style="background:#ff5f57"></div>
+            <div class="sv-inline-ss-dot" style="background:#febc2e;margin-left:4px"></div>
+            <div class="sv-inline-ss-dot" style="background:#28c840;margin-left:4px"></div>
+            <div style="flex:1;margin-left:8px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 10px;font-size:10px;color:var(--muted);font-family:monospace" id="sv-inline-urlbar">https://www.facebook.com</div>
+            <div id="sv-inline-live" style="display:flex;align-items:center;gap:5px;margin-left:8px;font-size:10px;color:var(--muted)">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--red)" id="sv-inline-dot"></div>
+              <span id="sv-inline-label">Chờ...</span>
+            </div>
+          </div>
+          <img id="sv-inline-img" style="width:100%;display:none;max-height:220px;object-fit:cover;object-position:top" alt="Tab máy ảo" onclick="openScreenshotModal()"/>
+          <div id="sv-inline-ph" style="height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted)">
+            <div style="font-size:36px">🖥️</div>
+            <div style="font-size:12px">Chờ tab máy ảo khởi động...</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:rgba(79,158,255,.5);text-align:center;margin-top:5px">Nhấn ảnh để xem toàn màn hình</div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue)">📱 Máy ảo của bạn</div>
+          <button class="btn btn-primary" style="padding:5px 10px;font-size:14px;min-width:unset;flex:none;width:32px;height:32px;border-radius:50%" onclick="openCreateServerModal()">+</button>
+        </div>
+        <div class="sv-rail" id="sv-status-rail">
+          <div class="sv-empty">⏳ Đang tải...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">FB Dame Tool · Phát triển bởi Nguyễn Hoàng Khánh Nam (Dzi) · 2026</div>
+</div>
+</div><!-- /#app-screen -->
+
+<!-- ════ MODAL TAB MÁY ẢO ════ -->
+<div class="modal-overlay" id="screenshot-modal" onclick="if(event.target===this)closeScreenshotModal()" style="z-index:9999">
+  <div class="modal-box" style="max-width:700px;padding:0;overflow:hidden;background:#0a0a14;border:1px solid rgba(79,158,255,.25)">
+    <!-- Titlebar giả lập browser -->
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#111128;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;gap:6px">
+        <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;cursor:pointer" onclick="closeScreenshotModal()"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#febc2e"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#28c840"></div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,.06);border-radius:8px;padding:5px 12px;font-size:11px;color:var(--muted);font-family:monospace" id="ss-url-bar">
+        https://www.facebook.com
+      </div>
+      <div id="ss-live-dot" style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div>
+      <span style="font-size:11px;color:var(--muted)" id="ss-live-label">Chờ...</span>
+    </div>
+
+    <!-- Ảnh screenshot -->
+    <div style="position:relative;background:#0d0d1a;min-height:300px;display:flex;align-items:center;justify-content:center">
+      <img id="ss-img" alt="Tab máy ảo"
+        style="width:100%;display:none;image-rendering:auto;border-radius:0">
+      <div id="ss-placeholder" style="text-align:center;color:var(--muted);padding:40px">
+        <div style="font-size:42px;margin-bottom:10px">🖥️</div>
+        <div style="font-size:13px">Chờ tab máy ảo khởi động...</div>
+        <div style="font-size:11px;margin-top:6px;opacity:.6">Ảnh sẽ tự cập nhật mỗi 2 giây</div>
+      </div>
+    </div>
+
+    <!-- Footer info -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#111128;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:11px;color:var(--muted)">
+        🤖 Playwright headless · <span id="ss-total-label">0 báo cáo</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="refreshScreenshot()" style="background:rgba(79,158,255,.15);border:none;border-radius:8px;padding:5px 12px;font-size:11px;color:var(--blue);cursor:pointer">🔄 Làm mới</button>
+        <button onclick="closeScreenshotModal()" style="background:rgba(255,82,82,.15);border:none;border-radius:8px;padding:5px 12px;font-size:11px;color:var(--red);cursor:pointer">✕ Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/globals.js?v=19"></script>
+<script src="/static/captcha.js?v=19"></script>
+<script src="/static/auth.js?v=19"></script>
+<script src="/static/dame.js?v=19"></script>
+<script src="/static/history.js?v=19"></script>
+<script src="/static/balance.js?v=19"></script>
+<script src="/static/admin.js?v=19"></script>
+<script src="/static/deposit.js?v=19"></script>
+<script src="/static/vps.js?v=19"></script>
+<script src="/static/utils.js?v=19"></script>
+<script src="/static/wizard.js?v=19"></script>
+<script src="/static/server_list.js?v=19"></script>
+<script src="/static/server_detail.js?v=19"></script>
+<script src="/static/init.js?v=19"></script>
+<script src="/static/screenshot.js?v=19"></script>
+
+<!-- DEPOSIT HISTORY STANDALONE MODAL -->
+<div class="modal-overlay" id="deposit-hist-standalone-modal" onclick="if(event.target===this)closeModal('deposit-hist-standalone-modal')">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title">💰 Lịch sử nạp tiền</div>
+    <div id="dep-hist-standalone-list" style="max-height:60vh;overflow-y:auto"></div>
+    <button class="close-btn" onclick="closeModal('deposit-hist-standalone-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- PURCHASE HISTORY STANDALONE MODAL -->
+<div class="modal-overlay" id="purchase-hist-standalone-modal" onclick="if(event.target===this)closeModal('purchase-hist-standalone-modal')">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title">🛒 Lịch sử mua máy ảo</div>
+    <div id="pur-hist-standalone-list" style="max-height:60vh;overflow-y:auto"></div>
+    <button class="close-btn" onclick="closeModal('purchase-hist-standalone-modal')">Đóng</button>
+  </div>
+</div>
+
+<!-- CHAT WITH ADMIN MODAL -->
+<!-- CHAT WITH ADMIN MODAL -->
+<!-- ═══════════════════════════════════════════════════════
+     INBOX PAGE (full-screen, kiểu chototmmo)
+════════════════════════════════════════════════════════ -->
+<div id="inbox-page" style="display:none;position:fixed;inset:0;z-index:25000;background:var(--bg1);flex-direction:column;overflow:hidden">
+  <!-- Header -->
+  <div style="height:54px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg1)">
+    <button onclick="closeInboxPage()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px 4px 0">←</button>
+    <span style="font-size:16px;font-weight:800">💬 Hộp thư</span>
+    <div style="width:32px"></div>
+  </div>
+  <!-- Search bar -->
+  <div style="padding:10px 14px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg1)">
+    <div style="background:var(--glass2);border-radius:20px;padding:9px 14px;display:flex;align-items:center;gap:8px;border:1px solid var(--border)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="15" height="15"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="inbox-search" placeholder="Tìm kiếm..." style="background:none;border:none;outline:none;font-size:14px;color:var(--text);width:100%" oninput="filterInboxThreads(this.value)">
+    </div>
+  </div>
+  <!-- Thread list -->
+  <div id="inbox-thread-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="text-align:center;color:var(--muted);padding:40px 0">⏳ Đang tải...</div>
+  </div>
+</div>
+
+<!-- CHAT THREAD PAGE (full-screen) -->
+<div id="chat-thread-page" style="display:none;position:fixed;inset:0;z-index:26000;background:var(--bg1);flex-direction:column;overflow:hidden">
+  <!-- Header -->
+  <div style="height:56px;padding:0 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg1)">
+    <button onclick="closeChatThreadPage()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px 4px 0;flex-shrink:0">←</button>
+    <div id="chat-thread-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0">👑</div>
+    <div style="flex:1;min-width:0">
+      <div id="chat-thread-name" style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Admin</div>
+      <div style="font-size:11px;color:#00c882;display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:#00c882;display:inline-block"></span>Đang hoạt động</div>
+    </div>
+  </div>
+  <!-- Messages -->
+  <div id="chat-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch"></div>
+  <!-- Input -->
+  <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:var(--bg1)">
+    <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('chat-img-input').click()" style="width:36px;height:36px;border-radius:50%;background:var(--glass2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:1px solid var(--border)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="17" height="17"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>
+    <input type="file" id="chat-img-input" accept="image/*" style="display:none" onchange="chatAttachImage(this)">
+    <div style="flex:1;background:var(--glass2);border-radius:22px;padding:0 14px;display:flex;align-items:center;border:1px solid var(--border)">
+      <textarea id="chat-input-text" placeholder="Nhập tin nhắn..." rows="1" style="flex:1;background:none;border:none;outline:none;padding:10px 0;color:var(--text);font-size:14px;resize:none;font-family:inherit;max-height:90px;overflow-y:auto;-webkit-overflow-scrolling:touch" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>
+    </div>
+    <button onclick="chatSend()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(79,158,255,.4)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="chat-admin-modal" onclick="if(event.target===this)closeChatAdmin()" style="z-index:20000;align-items:flex-end;padding:0;display:none!important"></div>
+
+<!-- ADMIN INBOX PAGE (full-screen, giống user inbox) -->
+<div id="admin-inbox-page" style="display:none;position:fixed;inset:0;z-index:27000;background:var(--bg1);flex-direction:column;overflow:hidden">
+  <div style="height:54px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg1)">
+    <button onclick="closeAdminInboxPage()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px 4px 0">←</button>
+    <span style="font-size:16px;font-weight:800">💬 Hộp thư</span>
+    <div style="width:32px"></div>
+  </div>
+  <div style="padding:10px 14px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg1)">
+    <div style="background:var(--glass2);border-radius:20px;padding:9px 14px;display:flex;align-items:center;gap:8px;border:1px solid var(--border)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="15" height="15"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="admin-inbox-search" placeholder="Tìm kiếm người dùng..." style="background:none;border:none;outline:none;font-size:14px;color:var(--text);width:100%" oninput="filterAdminInboxThreads(this.value)">
+    </div>
+  </div>
+  <div id="admin-inbox-thread-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="text-align:center;color:var(--muted);padding:40px 0">⏳ Đang tải...</div>
+  </div>
+</div>
+
+<!-- ADMIN CHAT THREAD PAGE (full-screen) -->
+<div id="admin-chat-thread-page" style="display:none;position:fixed;inset:0;z-index:28000;background:var(--bg1);flex-direction:column;overflow:hidden">
+  <div style="height:56px;padding:0 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg1)">
+    <button onclick="closeAdminChatThreadPage()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px 4px 0;flex-shrink:0">←</button>
+    <div id="admin-thread-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0">?</div>
+    <div style="flex:1;min-width:0">
+      <div id="admin-thread-username" style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">User</div>
+      <div style="font-size:11px;color:var(--muted)">Thành viên</div>
+    </div>
+  </div>
+  <div id="admin-thread-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch"></div>
+  <div style="padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:var(--bg1)">
+    <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('admin-img-input').click()" style="width:36px;height:36px;border-radius:50%;background:var(--glass2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:1px solid var(--border)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="17" height="17"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </div>
+    <input type="file" id="admin-img-input" accept="image/*" style="display:none" onchange="adminAttachImage(this)">
+    <div style="flex:1;background:var(--glass2);border-radius:22px;padding:0 14px;display:flex;align-items:center;border:1px solid var(--border)">
+      <textarea id="admin-reply-text2" placeholder="Nhập reply..." rows="1" style="flex:1;background:none;border:none;outline:none;padding:10px 0;color:var(--text);font-size:14px;resize:none;font-family:inherit;max-height:90px;overflow-y:auto;-webkit-overflow-scrolling:touch" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();adminChatReplyNew();}"></textarea>
+    </div>
+    <button onclick="adminChatReplyNew()" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(79,158,255,.4)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script src="/static/chat.js?v=19"></script>
+<!-- ══════════════════════════════════════════════════════
+     POSTS FEED MODAL
+══════════════════════════════════════════════════════ -->
+<!-- POSTS FEED PAGE (full-screen, kiểu Facebook) -->
+<div id="posts-feed-page" style="display:none;position:fixed;inset:0;z-index:25000;background:var(--bg1);flex-direction:column;overflow:hidden;-webkit-overflow-scrolling:touch">
+  <!-- Header cố định -->
+  <div style="padding:0 16px;height:54px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1">
+    <button onclick="closePostsFeedPage()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;padding:4px 8px 4px 0;line-height:1">←</button>
+    <div style="font-size:16px;font-weight:900">📝 Bài đăng cộng đồng</div>
+    <button onclick="openCreatePost()" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:800;background:linear-gradient(135deg,#4f9eff,#7c4dff);color:#fff;box-shadow:0 2px 10px rgba(79,158,255,.35)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Đăng bài
+    </button>
+  </div>
+  <!-- Tabs: Feed / Chờ duyệt (admin only) -->
+  <div style="display:flex;gap:8px;padding:10px 16px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)">
+    <button id="posts-tab-feed" onclick="switchPostsTab('feed')" style="padding:6px 16px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:700;background:linear-gradient(135deg,#ff50a0,#ff9800);color:#fff">🔥 Feed</button>
+    <button id="posts-tab-pending" onclick="switchPostsTab('pending')" style="display:none;padding:6px 16px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:12px;font-weight:700;background:transparent;color:var(--muted)">⏳ Chờ duyệt <span id="posts-pending-count" style="background:#ff4d4d;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:2px"></span></button>
+  </div>
+  <!-- Feed content cuộn -->
+  <div id="posts-feed-content" style="flex:1;overflow-y:auto;display:block;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+    <div style="text-align:center;color:var(--muted);padding:40px 0">⏳ Đang tải...</div>
+  </div>
+  <div id="posts-load-more-row" style="display:none;padding:10px;text-align:center;flex-shrink:0">
+    <button onclick="loadMorePosts()" style="padding:8px 22px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-weight:700">Xem thêm ↓</button>
+  </div>
+</div>
+
+<!-- CREATE POST MODAL -->
+<div class="modal-overlay" id="create-post-modal" onclick="if(event.target===this)closeModal('create-post-modal')" style="z-index:27000;align-items:flex-end;padding:0">
+  <div style="width:100%;max-width:600px;margin:0 auto;background:var(--bg);border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:16px;font-weight:800">✏️ Tạo bài đăng</div>
+      <button onclick="closeModal('create-post-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div id="create-post-avatar" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0">?</div>
+        <div>
+          <div id="create-post-username" style="font-size:14px;font-weight:800"></div>
+          <div style="font-size:11px;color:var(--muted)">Bài viết sẽ được Admin duyệt trước khi hiển thị</div>
+        </div>
+      </div>
+      <textarea id="create-post-text" placeholder="Bạn đang nghĩ gì? Nhập nội dung bài đăng..." rows="5" style="width:100%;background:var(--glass2);border:1px solid var(--border);border-radius:14px;padding:12px;color:var(--text);font-size:15px;resize:none;outline:none;font-family:inherit;box-sizing:border-box;line-height:1.5"></textarea>
+      <!-- Media preview -->
+      <div id="create-post-media-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+      <!-- Media buttons -->
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('post-media-input').click()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);background:var(--glass2);user-select:none;-webkit-user-select:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Ảnh / Video
+        </div>
+        <input type="file" id="post-media-input" accept="image/*,video/*" multiple style="display:none" onchange="handlePostMediaAdd(this)">
+        <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('post-file-input').click()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);background:var(--glass2);user-select:none;-webkit-user-select:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          File
+        </div>
+        <input type="file" id="post-file-input" multiple style="display:none" onchange="handlePostFileAdd(this)">
+      </div>
+      <div id="create-post-err" style="color:#ff5050;font-size:12px;min-height:16px;margin-top:8px"></div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--bg)">
+      <button onclick="submitCreatePost()" id="create-post-btn" style="width:100%;padding:13px;border-radius:14px;border:none;cursor:pointer;font-size:15px;font-weight:900;background:linear-gradient(135deg,#ff50a0,#ff9800);color:#fff;box-shadow:0 4px 18px rgba(255,80,160,.35)">🚀 Đăng bài</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW POST MODAL (single post + comments) -->
+<div class="modal-overlay" id="view-post-modal" onclick="if(event.target===this)closeModal('view-post-modal')" style="z-index:28000;align-items:flex-end;padding:0">
+  <div style="width:100%;max-width:600px;margin:0 auto;background:var(--bg);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:800">💬 Bình luận</div>
+      <button onclick="closeModal('view-post-modal')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div id="view-post-content" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px"></div>
+    <!-- Comment input -->
+    <div style="padding:10px 12px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0">
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div onclick="event.preventDefault();event.stopPropagation();document.getElementById('comment-media-input').click()" style="width:34px;height:34px;border-radius:50%;background:var(--glass2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <input type="file" id="comment-media-input" accept="image/*,video/*" style="display:none" onchange="handleCommentMedia(this)">
+        <textarea id="comment-text-input" placeholder="Viết bình luận..." rows="1" style="flex:1;background:var(--glass2);border:none;border-radius:12px;padding:9px 12px;color:var(--text);font-size:14px;resize:none;outline:none;font-family:inherit;max-height:80px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitComment();}"></textarea>
+        <button onclick="submitComment()" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff50a0,#ff9800);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" width="15" height="15"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div id="comment-media-preview" style="margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/posts.js?v=19"></script>
+<script src="/static/hotdeal.js?v=19"></script>
+<script src="/static/notifications.js?v=19"></script>
+
+<!-- LIGHTBOX VIEWER -->
+<div id="lightbox-overlay" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:99000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column">
+  <div style="position:absolute;top:16px;right:16px;display:flex;gap:10px;z-index:2">
+    <button id="lightbox-save-btn" onclick="event.stopPropagation();lightboxSave()" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:8px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;backdrop-filter:blur(10px)">💾 Lưu ảnh</button>
+    <button onclick="event.stopPropagation();closeLightbox()" style="background:rgba(255,255,255,.15);border:none;border-radius:20px;padding:8px 18px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;backdrop-filter:blur(10px)">✕ Đóng</button>
+  </div>
+  <img id="lightbox-img" src="" style="max-width:95vw;max-height:85vh;object-fit:contain;border-radius:10px;display:none" onclick="event.stopPropagation()">
+  <video id="lightbox-video" src="" controls style="max-width:95vw;max-height:85vh;border-radius:10px;display:none" onclick="event.stopPropagation()"></video>
+</div>
+
+<!-- PENDING APPROVAL MODAL -->
+<div class="modal-overlay" id="pending-approval-modal" onclick="if(event.target===this)closeModal('pending-approval-modal')">
+  <div class="modal-box" style="max-width:320px;text-align:center;position:relative">
+    <button onclick="closeModal('pending-approval-modal')" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 6px;border-radius:50%;transition:background 0.2s" onmouseover="this.style.background='rgba(128,128,128,0.15)'" onmouseout="this.style.background='none'">✕</button>
+    <div style="font-size:48px;margin-bottom:12px">⏳</div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:8px">Đang chờ duyệt</div>
+    <div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px">Bài viết của bạn đã được gửi thành công! 🎉<br><br>Vui lòng chờ Admin xem xét và duyệt bài — bài sẽ xuất hiện trên Feed sau khi được duyệt nhé!</div>
+    <button class="close-btn" onclick="closeModal('pending-approval-modal')" style="width:100%;margin:0">Đã hiểu</button>
+  </div>
+</div>
+
+<!-- ═══ BELL DROPDOWN ═══ -->
+<div id="bell-dropdown" style="display:none;position:fixed;top:62px;right:12px;width:300px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:8000;opacity:0;transform:translateY(-8px);transition:opacity .18s,transform .18s;overflow:hidden"></div>
+
+<!-- ═══ MAIN NOTIFICATION MODAL ═══ -->
+<div class="modal-overlay" id="main-notif-modal" onclick="if(event.target===this)closeModal('main-notif-modal')" style="backdrop-filter:blur(6px)">
+  <div style="background:#fff;border-radius:24px;max-width:370px;width:calc(100% - 32px);overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22);transition:transform .2s,opacity .2s">
+    <!-- Header tím nhạt -->
+    <div style="background:linear-gradient(135deg,#e8e3ff 0%,#ede8ff 100%);padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🔔</span>
+        <span style="font-size:17px;font-weight:800;color:#3d2b7c;letter-spacing:-.2px">Thông báo</span>
+      </div>
+      <button onclick="closeModal('main-notif-modal')" style="background:rgba(100,80,180,.12);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#7b5ea7;cursor:pointer;font-weight:700">✕</button>
+    </div>
+    <!-- Content -->
+    <div style="background:#fff;padding:20px 22px 8px">
+      <img id="main-notif-img" src="" style="width:100%;border-radius:14px;margin-bottom:14px;display:none">
+      <div id="main-notif-text" style="font-size:17px;line-height:1.8;color:#1a1a2e;font-weight:600;white-space:pre-wrap;word-break:break-word"></div>
+    </div>
+    <!-- Footer nút -->
+    <div style="background:#fff;padding:18px 22px 22px">
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="notif-no-remind" style="width:16px;height:16px;accent-color:#7c4dff;cursor:pointer">
+        <span style="font-size:13px;color:#666;font-weight:600">Không nhắc lại trong 6 giờ</span>
+      </label>
+      <button onclick="dismissMainNotif()" style="width:100%;padding:15px;border:none;border-radius:50px;background:linear-gradient(135deg,#7c4dff,#5c6bc0);color:#fff;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.3px;box-shadow:0 6px 20px rgba(124,77,255,.35);transition:opacity .15s" onmouseenter="this.style.opacity='.88'" onmouseleave="this.style.opacity='1'">Đã hiểu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN: HOT DEAL MODAL ═══ -->
+<div class="modal-overlay" id="admin-hotdeal-modal" onclick="if(event.target===this)closeModal('admin-hotdeal-modal')">
+  <div class="modal-box" style="max-width:480px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:88vh">
+    <div style="padding:14px 18px;background:linear-gradient(135deg,rgba(255,100,0,.12),rgba(255,50,0,.08));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:16px;font-weight:800">🔥 Tạo Hot Deal</div>
+      <button onclick="closeModal('admin-hotdeal-modal')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px">
+      <div style="display:grid;gap:10px;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Tiêu đề deal</div>
+          <input id="ahd-title" class="field-input" placeholder="VD: 3 Máy ảo siêu deal tuần này!">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">📱 Số máy ảo</div>
+            <input id="ahd-slots" class="field-input" type="number" value="1" min="1" placeholder="Số máy ảo">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">⏱ Thời hạn máy ảo</div>
+            <input id="ahd-duration" class="field-input" placeholder="VD: 1d, 7d, 1m, 1y">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">💰 Giá bán (VND)</div>
+            <input id="ahd-price" class="field-input" type="number" placeholder="VD: 150000">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">🏷 Giá gốc (VND)</div>
+            <input id="ahd-orig" class="field-input" type="number" placeholder="VD: 200000">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">🛒 Số lượt mua</div>
+            <input id="ahd-qty" class="field-input" type="number" value="10" min="1" placeholder="Tối đa bao nhiêu lượt">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">⏳ Deal hết hạn sau</div>
+            <input id="ahd-expires" class="field-input" placeholder="VD: 24h, 3d, 1m">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">🖼 Ảnh (tùy chọn)</div>
+          <div style="position:relative">
+            <input type="file" id="ahd-img-file" accept="image/*" style="display:none" onchange="handleHotDealImg(this)">
+            <div onclick="document.getElementById('ahd-img-file').click()" id="ahd-img-dropzone" style="border:1.5px dashed var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--glass2);transition:.2s" onmouseover="this.style.borderColor='#ff6d00'" onmouseout="this.style.borderColor='var(--border)'">
+              <span style="font-size:22px">🖼</span>
+              <span id="ahd-img-label" style="font-size:13px;color:var(--muted)">Chọn ảnh để tải lên</span>
+            </div>
+            <div id="ahd-img-preview" style="margin-top:8px;display:none">
+              <div style="position:relative;display:inline-block">
+                <img id="ahd-img-thumb" style="height:80px;border-radius:10px;object-fit:cover;max-width:100%">
+                <button onclick="clearHotDealImg()" style="position:absolute;top:-6px;right:-6px;background:#ff5050;border:none;border-radius:50%;width:20px;height:20px;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="ahd-err" style="color:#ff5050;font-size:12px;margin-bottom:8px"></div>
+      <button id="ahd-create-btn" onclick="adminCreateHotDeal()" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#ff6d00,#ff3d00);color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:16px">🔥 Tạo Hot Deal</button>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Deal đang hoạt động</div>
+      <div id="admin-hotdeal-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN: NOTIFICATIONS MODAL ═══ -->
+<div class="modal-overlay" id="admin-notif-modal" onclick="if(event.target===this)closeModal('admin-notif-modal')">
+  <div class="modal-box" style="max-width:460px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:88vh">
+    <div style="padding:14px 18px;background:linear-gradient(135deg,rgba(124,77,255,.12),rgba(41,121,255,.1));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:16px;font-weight:800">📢 Quản lý thông báo</div>
+      <button onclick="closeModal('admin-notif-modal')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px">
+      <!-- Main notification -->
+      <div style="font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">📌 Thông báo chính (popup khi mở web)</div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Nội dung (xuống dòng tự động)</div>
+        <textarea id="anotif-main-text" style="width:100%;min-height:120px;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:13px;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box" placeholder="Nhập nội dung thông báo...&#10;Xuống dòng tự giữ nguyên&#10;Dùng [red]chữ đỏ[/red] [blue]chữ xanh[/blue] [green]xanh lá[/green] [yellow]vàng[/yellow] [bold]đậm[/bold] để tô màu"></textarea>
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase">Ảnh đính kèm (tùy chọn)</div>
+        <input type="file" id="anotif-img-file" accept="image/*" onchange="handleNotifImg(this)" style="display:none">
+        <div onclick="document.getElementById('anotif-img-file').click()" style="border:1.5px dashed var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;color:var(--muted);font-size:12px;font-weight:700" id="anotif-img-drop">📷 Nhấn để chọn ảnh</div>
+        <div id="anotif-img-preview" style="display:none;margin-top:8px;position:relative">
+          <img id="anotif-img-thumb" style="width:100%;border-radius:10px;max-height:160px;object-fit:cover">
+          <button onclick="clearNotifImg()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:24px;height:24px;color:#fff;font-size:12px;cursor:pointer">✕</button>
+        </div>
+        <input type="hidden" id="anotif-main-img" value="">
+      </div>
+      <button id="anotif-save-btn" onclick="adminSaveMainNotif()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#2979ff,#7c4dff);color:#fff;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:18px">💾 Lưu thông báo</button>
+
+      <!-- Sub notifications / bell -->
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:12px;font-weight:800;color:#ff9800;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">🔔 Gửi thông báo chuông</div>
+        <textarea id="anotif-sub-text" style="width:100%;min-height:80px;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--glass2);color:var(--text);font-size:13px;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box;margin-bottom:10px" placeholder="Nội dung thông báo gửi tới chuông của user..."></textarea>
+        <button id="anotif-sub-btn" onclick="adminSendSubNotif()" style="width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#ff9800,#ff6d00);color:#fff;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:14px">🔔 Gửi thông báo</button>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Thông báo đã gửi</div>
+        <div id="anotif-sub-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOP NẠP MODAL ═══ -->
+<div class="modal-overlay" id="top-nap-modal" onclick="if(event.target===this)closeModal('top-nap-modal')">
+  <div class="modal-box" style="max-width:420px;padding:0;overflow:hidden;display:flex;flex-direction:column;max-height:88vh">
+    <div style="padding:14px 18px;background:linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,165,0,.08));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:16px;font-weight:800">🏆 Bảng xếp hạng nạp</div>
+        <div id="top-nap-month" style="font-size:11px;color:var(--muted)">Tháng hiện tại</div>
+      </div>
+      <button onclick="closeModal('top-nap-modal')" style="background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px">
+      <div style="background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,165,0,.06));border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:14px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--text)">
+        🎁 <b>Phần thưởng cuối tháng:</b><br>
+        🥇 Top 1 — Quà đặc biệt + 500.000 VND<br>
+        🥈 Top 2 — Phần quà + 200.000 VND<br>
+        🥉 Top 3 — Phần quà + 100.000 VND<br>
+        4️⃣ Top 4 — Voucher 50.000 VND<br>
+        5️⃣ Top 5 — Voucher 20.000 VND<br>
+        <span style="color:var(--muted);font-size:11px">* Bảng tự reset vào đầu mỗi tháng</span>
+      </div>
+      <div id="top-nap-list"><div style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</div></div>
+      <div id="top-nap-admin-ctrl" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <button onclick="adminResetTopNap()" style="width:100%;padding:10px;border:none;border-radius:12px;background:rgba(255,80,80,.15);color:#ff5050;font-size:13px;font-weight:700;cursor:pointer">🔄 Reset bảng xếp hạng</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
