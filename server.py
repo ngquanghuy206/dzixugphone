@@ -1,0 +1,1782 @@
+import asyncio, uuid, json, os, hashlib, secrets, re, time, random, string
+from contextlib import asynccontextmanager
+from datetime import datetime
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+try: import aiohttp; HAS_AIOHTTP = True
+except: HAS_AIOHTTP = False
+
+# URL server để đăng ký Telegram webhook (Render tự set RENDER_EXTERNAL_URL)
+SITE_URL = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/") or "https://dzimeomeo.onrender.com"
+
+TG_BOT_TOKEN   = "7818000635:AAGJ4troYL-SpYEfoTqxj_axm4B-YPt1hvU"
+TG_ADMIN_ID    = 7454964260
+
+async def _register_tg_webhook():
+    if not HAS_AIOHTTP: return
+    webhook_url = f"{SITE_URL}/api/tg_webhook"
+    try:
+        async with aiohttp.ClientSession() as s:
+            r = await s.post(
+                f"https://api.telegram.org/bot{TG_BOT_TOKEN}/setWebhook",
+                json={"url": webhook_url, "allowed_updates": ["callback_query", "message"]},
+                timeout=aiohttp.ClientTimeout(total=10)
+            )
+            data = await r.json()
+            print(f"[TG Webhook] {webhook_url} -> {data}")
+    except Exception as e:
+        print(f"[TG Webhook] Loi: {e}")
+
+async def _cleanup_expired():
+    """Background task: tự xóa slot hết hạn và hot deal hết hạn mỗi 5 phút"""
+    while True:
+        try:
+            now_ts = int(time.time())
+            now_dt = datetime.now()
+
+            # ── Xóa hot deal hết hạn hoặc hết lượt ──
+            deals = load_hot_deals()
+            active_deals = [d for d in deals if d.get("expires_at", 0) > now_ts and d.get("qty_left", 0) > 0]
+            if len(active_deals) != len(deals):
+                save_hot_deals(active_deals)
+
+            # ── Xóa slot hết hạn của từng user ──
+            users = load_users()
+            changed = False
+            for uname, udata in users.items():
+                slots = udata.get("slots", [])
+                valid_slots = []
+                for s in slots:
+                    exp = s.get("expires_at")
+                    if exp is None:
+                        valid_slots.append(s)
+                    else:
+                        try:
+                            exp_dt = datetime.strptime(exp, "%d/%m/%Y %H:%M:%S")
+                            if exp_dt > now_dt:
+                                valid_slots.append(s)
+                        except:
+                            pass
+                if len(valid_slots) != len(slots):
+                    users[uname]["slots"] = valid_slots
+                    changed = True
+            if changed:
+                save_users(users)
+
+        except Exception:
+            pass
+
+        await asyncio.sleep(300)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await _register_tg_webhook()
+    task = asyncio.ensure_future(_cleanup_expired())
+    yield
+    task.cancel()
+
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.mount("/static", StaticFiles(directory="static"), name="static")
+RESEND_API_KEY = "re_Tj3Eyk2M_NgQf9E2sKdnmbSmdMsJefXpt"
+FROM_EMAIL     = "onboarding@resend.dev"
+LOGO_URL       = "https://i.imgur.com/1qYFul7.jpeg"
+
+def build_otp_email(title: str, subtitle: str, otp: str, username: str = "", note: str = "") -> str:
+    user_line = f"<div style='font-size:14px;color:rgba(255,255,255,.6);margin-bottom:20px'>Xin chào <b style=\"color:#4f9eff\">{username}</b> 👋</div>" if username else ""
+    note_line  = f"<div style='margin-top:16px;font-size:12px;color:rgba(255,255,255,.3);line-height:1.5'>{note}</div>" if note else ""
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e1a;padding:32px 16px">
+<tr><td align="center">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:linear-gradient(145deg,#0d1428,#0f1830);border-radius:20px;overflow:hidden;border:1px solid rgba(79,158,255,.2);box-shadow:0 20px 60px rgba(0,0,0,.6)">
+<tr><td style="height:4px;background:linear-gradient(90deg,#4f9eff,#7c4dff,#ff50a0)"></td></tr>
+<tr><td align="center" style="padding:32px 32px 20px">
+  <img src="{LOGO_URL}" width="72" height="72" style="border-radius:16px;border:2px solid rgba(79,158,255,.4);display:block;margin:0 auto 16px" alt="FB Dame Tool">
+  <div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:.5px">FB Dame Tool</div>
+  <div style="font-size:12px;color:rgba(79,158,255,.8);margin-top:4px;letter-spacing:1px;text-transform:uppercase">by Dzi Meo Meo</div>
+</td></tr>
+<tr><td style="padding:0 32px"><div style="height:1px;background:rgba(79,158,255,.15)"></div></td></tr>
+<tr><td style="padding:28px 32px">
+  {user_line}
+  <div style="font-size:13px;font-weight:700;color:rgba(79,158,255,.7);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">{title}</div>
+  <div style="font-size:14px;color:rgba(255,255,255,.7);margin-bottom:24px;line-height:1.6">{subtitle}</div>
+  <div style="background:rgba(79,158,255,.08);border:1px solid rgba(79,158,255,.25);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px">
+    <div style="font-size:42px;font-weight:900;letter-spacing:12px;color:#4f9eff;font-variant-numeric:tabular-nums">{otp}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:10px">⏱ Hiệu lực trong <b style="color:rgba(255,255,255,.7)">5 phút</b></div>
+  </div>
+  <div style="background:rgba(255,77,77,.08);border:1px solid rgba(255,77,77,.2);border-radius:10px;padding:12px 16px">
+    <span style="font-size:13px;color:rgba(255,120,120,.9)">⚠️ Không chia sẻ mã này với bất kỳ ai, kể cả admin.</span>
+  </div>
+  {note_line}
+</td></tr>
+<tr><td style="padding:0 32px"><div style="height:1px;background:rgba(79,158,255,.1)"></div></td></tr>
+<tr><td align="center" style="padding:20px 32px">
+  <div style="font-size:11px;color:rgba(255,255,255,.25)">© 2026 FB Dame Tool · by Dzi Meo Meo</div>
+  <div style="font-size:11px;color:rgba(255,255,255,.2);margin-top:4px">🔒 Bảo mật</div>
+</td></tr>
+</table></td></tr></table>
+</body></html>"""
+
+# Bank info - thực tế gửi API là VAN THI KIM LIEN, hiển thị web là NGUYEN HOANG KHANH NAM
+BANK_INFO = {
+    "account_number": "6340127565",
+    "account_name_real": "VAN THI KIM LIEN",   # dùng cho VietQR API
+    "account_name_display": "NGUYEN HOANG KHANH NAM",  # hiển thị trên web
+    "bank_code": "BIDV",
+    "bank_bin": "970418",
+}
+
+import uuid as _uuid
+otp_store   = {}
+login_jobs  = {}
+
+HISTORY_FILE      = "history.json"
+USERS_FILE        = "users.json"
+SESSIONS_FILE     = "sessions.json"
+SERVERS_FILE      = "servers.json"
+DEPOSIT_FILE      = "deposits.json"       # lịch sử nạp tiền
+PURCHASE_FILE     = "purchases.json"      # lịch sử mua máy chủ
+SLOTS_FILE        = "slots.json"          # user -> số slot dame (luồng dame)
+POSTS_FILE        = "posts.json"          # bài đăng cộng đồng
+HOT_DEALS_FILE    = "hot_deals.json"      # hot deals admin tạo
+NOTIFICATIONS_FILE= "notifications.json"  # thông báo toàn site
+TOP_NAP_FILE      = "top_nap.json"        # bảng xếp hạng nạp tiền
+
+ADMIN_ACCOUNTS = {
+    "knammelbel206": hashlib.sha256("nqh300506".encode()).hexdigest()
+}
+
+# ── Gói dame slot ─────────────────────────────────────────────────────
+# Mỗi "máy ảo" = 1 SLOT DAME = 1 luồng dame chạy độc lập
+# user mua gói thì slot_count tăng, mỗi slot có 1 server_id riêng
+DAME_SLOT_PLANS = [
+    # ═══ THEO NGÀY (tab ngày — min 1 ngày) ═══
+    {"id":"sl_1x1d",  "name":"1 Máy ảo · 1 ngày",      "slots":1,  "days":1,   "price":30000,   "popular":False},
+    {"id":"sl_1x2d",  "name":"1 Máy ảo · 2 ngày",      "slots":1,  "days":2,   "price":55000,   "popular":False},
+    {"id":"sl_1x3d",  "name":"1 Máy ảo · 3 ngày",      "slots":1,  "days":3,   "price":79000,   "popular":False},
+    {"id":"sl_3x1d",  "name":"3 Máy ảo · 1 ngày",      "slots":3,  "days":1,   "price":79000,   "popular":False},
+    {"id":"sl_3x3d",  "name":"3 Máy ảo · 3 ngày",      "slots":3,  "days":3,   "price":199000,  "popular":True},
+    {"id":"sl_5x1d",  "name":"5 Máy ảo · 1 ngày",      "slots":5,  "days":1,   "price":119000,  "popular":False},
+    {"id":"sl_5x3d",  "name":"5 Máy ảo · 3 ngày",      "slots":5,  "days":3,   "price":299000,  "popular":False},
+    {"id":"sl_10x1d", "name":"10 Máy ảo · 1 ngày",     "slots":10, "days":1,   "price":199000,  "popular":False},
+    {"id":"sl_10x3d", "name":"10 Máy ảo · 3 ngày",     "slots":10, "days":3,   "price":499000,  "popular":True},
+    {"id":"sl_20x1d", "name":"20 Máy ảo · 1 ngày",     "slots":20, "days":1,   "price":349000,  "popular":False},
+    {"id":"sl_20x3d", "name":"20 Máy ảo · 3 ngày",     "slots":20, "days":3,   "price":849000,  "popular":False},
+    # ═══ THEO TUẦN (tab tuần — min 1 tuần = 7 ngày) ═══
+    {"id":"sl_1x1w",  "name":"1 Máy ảo · 1 tuần",      "slots":1,  "days":7,   "price":149000,  "popular":False},
+    {"id":"sl_1x2w",  "name":"1 Máy ảo · 2 tuần",      "slots":1,  "days":14,  "price":249000,  "popular":False},
+    {"id":"sl_3x1w",  "name":"3 Máy ảo · 1 tuần",      "slots":3,  "days":7,   "price":379000,  "popular":True},
+    {"id":"sl_3x2w",  "name":"3 Máy ảo · 2 tuần",      "slots":3,  "days":14,  "price":599000,  "popular":False},
+    {"id":"sl_5x1w",  "name":"5 Máy ảo · 1 tuần",      "slots":5,  "days":7,   "price":549000,  "popular":False},
+    {"id":"sl_5x2w",  "name":"5 Máy ảo · 2 tuần",      "slots":5,  "days":14,  "price":899000,  "popular":False},
+    {"id":"sl_10x1w", "name":"10 Máy ảo · 1 tuần",     "slots":10, "days":7,   "price":949000,  "popular":True},
+    {"id":"sl_10x2w", "name":"10 Máy ảo · 2 tuần",     "slots":10, "days":14,  "price":1599000, "popular":False},
+    {"id":"sl_20x1w", "name":"20 Máy ảo · 1 tuần",     "slots":20, "days":7,   "price":1699000, "popular":False},
+    # ═══ THEO THÁNG (tab tháng — min 1 tháng = 30 ngày) ═══
+    {"id":"sl_1x1m",  "name":"1 Máy ảo · 1 tháng",     "slots":1,  "days":30,  "price":499000,  "popular":True},
+    {"id":"sl_1x3m",  "name":"1 Máy ảo · 3 tháng",     "slots":1,  "days":90,  "price":1199000, "popular":False},
+    {"id":"sl_1x6m",  "name":"1 Máy ảo · 6 tháng",     "slots":1,  "days":180, "price":1999000, "popular":False},
+    {"id":"sl_3x1m",  "name":"3 Máy ảo · 1 tháng",     "slots":3,  "days":30,  "price":1299000, "popular":True},
+    {"id":"sl_3x3m",  "name":"3 Máy ảo · 3 tháng",     "slots":3,  "days":90,  "price":2999000, "popular":False},
+    {"id":"sl_5x1m",  "name":"5 Máy ảo · 1 tháng",     "slots":5,  "days":30,  "price":1999000, "popular":False},
+    {"id":"sl_5x3m",  "name":"5 Máy ảo · 3 tháng",     "slots":5,  "days":90,  "price":4499000, "popular":False},
+    {"id":"sl_10x1m", "name":"10 Máy ảo · 1 tháng",    "slots":10, "days":30,  "price":3499000, "popular":True},
+    {"id":"sl_10x3m", "name":"10 Máy ảo · 3 tháng",    "slots":10, "days":90,  "price":7999000, "popular":False},
+    {"id":"sl_20x1m", "name":"20 Máy ảo · 1 tháng",    "slots":20, "days":30,  "price":5999000, "popular":False},
+    # ═══ THEO NĂM (tab năm — min 1 năm = 365 ngày) ═══
+    {"id":"sl_1x1y",  "name":"1 Máy ảo · 1 năm",       "slots":1,  "days":365, "price":4999000, "popular":True},
+    {"id":"sl_3x1y",  "name":"3 Máy ảo · 1 năm",       "slots":3,  "days":365, "price":12999000,"popular":False},
+    {"id":"sl_5x1y",  "name":"5 Máy ảo · 1 năm",       "slots":5,  "days":365, "price":19999000,"popular":False},
+    {"id":"sl_10x1y", "name":"10 Máy ảo · 1 năm",      "slots":10, "days":365, "price":34999000,"popular":True},
+    # ═══ COMBO ĐẶC BIỆT (scroll dọc riêng) ═══
+    {"id":"sl_s1",    "name":"Starter · 2 Máy · 1 tuần",    "slots":2,  "days":7,   "price":199000,  "popular":False},
+    {"id":"sl_s2",    "name":"Basic · 3 Máy · 2 tuần",      "slots":3,  "days":14,  "price":449000,  "popular":False},
+    {"id":"sl_s3",    "name":"Pro · 5 Máy · 2 tuần",        "slots":5,  "days":14,  "price":699000,  "popular":True},
+    {"id":"sl_s4",    "name":"Business · 5 Máy · 1 tháng",  "slots":5,  "days":30,  "price":1499000, "popular":False},
+    {"id":"sl_s5",    "name":"Elite · 10 Máy · 2 tuần",     "slots":10, "days":14,  "price":1299000, "popular":False},
+    {"id":"sl_s6",    "name":"Elite Plus · 10 Máy · 1 tháng","slots":10,"days":30,  "price":2999000, "popular":True},
+    {"id":"sl_s7",    "name":"Ultimate · 20 Máy · 1 tháng", "slots":20, "days":30,  "price":4999000, "popular":True},
+    {"id":"sl_s8",    "name":"Mega · 50 Máy · 1 tháng",     "slots":50, "days":30,  "price":10999000,"popular":False},
+    {"id":"sl_free",  "name":"🎁 Free · 1 Máy · 30 phút",  "slots":1,  "days":0,   "price":0,       "popular":False,"trial":True,"minutes":30},
+]
+
+# ────────────────────────────────────────────────────────
+def _load(path, default):
+    if not os.path.exists(path): return default
+    try:
+        with open(path,"r",encoding="utf-8") as f: return json.load(f)
+    except: return default
+
+def _save(path, data):
+    with open(path,"w",encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def load_history():   return _load(HISTORY_FILE, [])
+def save_history(r):  _save(HISTORY_FILE, r)
+def load_users():     return _load(USERS_FILE, {})
+def save_users(u):    _save(USERS_FILE, u)
+def load_sessions():  return _load(SESSIONS_FILE, {})
+def save_sessions(s): _save(SESSIONS_FILE, s)
+def load_servers():   return _load(SERVERS_FILE, [])
+def save_servers(s):  _save(SERVERS_FILE, s)
+def load_deposits():  return _load(DEPOSIT_FILE, [])
+def save_deposits(d): _save(DEPOSIT_FILE, d)
+def load_purchases(): return _load(PURCHASE_FILE, [])
+def save_purchases(p):_save(PURCHASE_FILE, p)
+def load_slots():     return _load(SLOTS_FILE, {})
+def save_slots(s):    _save(SLOTS_FILE, s)
+def load_hot_deals(): return _load(HOT_DEALS_FILE, [])
+def save_hot_deals(d):_save(HOT_DEALS_FILE, d)
+def load_notifications(): return _load(NOTIFICATIONS_FILE, {"main": {"text":"","image":"","updated":""}, "sub":[]})
+def save_notifications(n):_save(NOTIFICATIONS_FILE, n)
+def load_top_nap():   return _load(TOP_NAP_FILE, {"month":"","entries":[]})
+def save_top_nap(t):  _save(TOP_NAP_FILE, t)
+
+def add_history(record):
+    records = load_history(); records.insert(0,record); save_history(records[:500])
+
+def hash_pw(pw): return hashlib.sha256(pw.encode()).hexdigest()
+
+def gen_order_id():
+    return "NAP" + "".join(random.choices(string.digits, k=8))
+
+def create_session(username:str) -> str:
+    token = secrets.token_hex(32)
+    sessions = load_sessions()
+    sessions[token] = {"username":username,"created":datetime.now().isoformat()}
+    save_sessions(sessions)
+    return token
+
+def get_session_user(token:str):
+    if not token: return None
+    s = load_sessions().get(token)
+    return s["username"] if s else None
+
+def is_admin(username:str) -> bool:
+    return username in ADMIN_ACCOUNTS
+
+def get_token(request:Request) -> str:
+    auth = request.headers.get("Authorization","")
+    if auth.startswith("Bearer "): return auth[7:]
+    return request.cookies.get("session_token","")
+
+def get_user_balance(username:str) -> int:
+    users = load_users()
+    if username not in users: return 0
+    return users[username].get("balance", 0)
+
+def adjust_balance(username:str, delta:int):
+    users = load_users()
+    if username not in users: return
+    users[username]["balance"] = users[username].get("balance",0) + delta
+    save_users(users)
+
+async def tg(text:str, inline_keyboard=None):
+    if not HAS_AIOHTTP: return
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id":TG_ADMIN_ID,"text":text,
+        "parse_mode":"HTML","disable_web_page_preview":True}
+    if inline_keyboard:
+        payload["reply_markup"] = {"inline_keyboard": inline_keyboard}
+    async with aiohttp.ClientSession() as s:
+        try:
+            await s.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=8))
+        except: pass
+
+# ════════════════════════════════════════════════════════
+# BASIC ROUTES
+# ════════════════════════════════════════════════════════
+@app.get("/")
+async def root(): return FileResponse("static/index.html")
+
+@app.get("/api/vps-plans")
+async def api_vps_plans():
+    return JSONResponse(DAME_SLOT_PLANS)
+
+# ════════════════════════════════════════════════════════
+# AUTH  (bỏ register - chỉ giữ login)
+# ════════════════════════════════════════════════════════
+@app.post("/api/register/send-otp")
+async def register_send_otp(request: Request):
+    """Bước 1: Validate info và gửi OTP về Gmail"""
+    import threading, random as _r2
+    data     = await request.json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "").strip()
+    email    = (data.get("email") or "").strip()
+    if not all([username, password, email]): raise HTTPException(400, "Thiếu thông tin")
+    if len(username) < 6: raise HTTPException(400, "Username phải ≥ 6 ký tự")
+    if len(password) < 6: raise HTTPException(400, "Mật khẩu phải ≥ 6 ký tự")
+    if not re.match(r"[^@]+@gmail\.com$", email, re.I): raise HTTPException(400, "Chỉ chấp nhận @gmail.com")
+    if username in ADMIN_ACCOUNTS: raise HTTPException(400, "Username đã tồn tại")
+    users = load_users()
+    if username in users: raise HTTPException(400, "Username đã tồn tại")
+    if any(u.get("email","").lower()==email.lower() for u in users.values()):
+        raise HTTPException(400, "Email đã được đăng ký")
+    otp = str(_r2.randint(100000, 999999))
+    reg_key = f"reg:{email}"
+    otp_store[reg_key] = {"otp": otp, "expires": time.time()+300, "username": username, "password": password, "email": email}
+    def _send():
+        try:
+            import resend; resend.api_key = RESEND_API_KEY
+            resend.Emails.send({"from": FROM_EMAIL, "to": email,
+                "subject": "🔑 Xác minh OTP đăng ký — FB Dame Tool",
+                "html": build_otp_email("XÁC MINH ĐĂNG KÝ","Mã OTP để xác minh tài khoản của bạn:",otp,username,"Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.")})
+        except: pass
+    threading.Thread(target=_send, daemon=True).start()
+    return JSONResponse({"ok": True, "message": "Mã OTP đã gửi về Gmail của bạn"})
+
+@app.post("/api/register")
+async def register(request: Request):
+    """Bước 2: Xác minh OTP và tạo tài khoản"""
+    data     = await request.json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "").strip()
+    email    = (data.get("email") or "").strip()
+    otp_code = (data.get("otp") or "").strip()
+    if not all([username, password, email, otp_code]): raise HTTPException(400, "Thiếu thông tin hoặc OTP")
+    reg_key = f"reg:{email}"
+    rec = otp_store.get(reg_key)
+    if not rec: raise HTTPException(400, "OTP không hợp lệ hoặc chưa gửi")
+    if time.time() > rec["expires"]: otp_store.pop(reg_key, None); raise HTTPException(400, "OTP hết hạn")
+    if rec["otp"] != otp_code: raise HTTPException(400, "OTP sai")
+    if rec["username"] != username or rec["password"] != password: raise HTTPException(400, "Thông tin không khớp, vui lòng thử lại")
+    if username in ADMIN_ACCOUNTS: raise HTTPException(400, "Username đã tồn tại")
+    users = load_users()
+    if username in users: raise HTTPException(400, "Username đã tồn tại")
+    if any(u.get("email","").lower()==email.lower() for u in users.values()):
+        raise HTTPException(400, "Email đã được đăng ký")
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    users[username] = {
+        "password": hash_pw(password), "password_plain": password,
+        "email": email, "created": now, "active": True, "balance": 0,
+        "free_slot_used": False,
+    }
+    save_users(users)
+    _grant_free_slot(username)
+    otp_store.pop(reg_key, None)
+    token = create_session(username)
+    asyncio.create_task(tg(f"🆕 <b>ĐĂNG KÝ MỚI</b>\n👤 <code>{username}</code>\n📧 {email}\n🕐 {now}"))
+    return JSONResponse({"ok": True, "token": token, "username": username, "is_admin": False, "balance": 0})
+
+@app.post("/api/login")
+async def login(request:Request):
+    data     = await request.json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "").strip()
+    if not username or not password: raise HTTPException(400,"Thiếu thông tin")
+    if username in ADMIN_ACCOUNTS:
+        if ADMIN_ACCOUNTS[username] != hash_pw(password): raise HTTPException(401,"Sai mật khẩu")
+        return JSONResponse({"ok":True,"token":create_session(username),"username":username,"is_admin":True,"balance":0})
+    users = load_users()
+    user  = users.get(username)
+    if not user: raise HTTPException(401,"Tài khoản không tồn tại")
+    if not user.get("active",True): raise HTTPException(403,"Tài khoản bị khóa")
+    if user["password"] != hash_pw(password): raise HTTPException(401,"Sai mật khẩu")
+    balance = user.get("balance",0)
+    return JSONResponse({"ok":True,"token":create_session(username),"username":username,"is_admin":False,"balance":balance})
+
+@app.post("/api/logout")
+async def logout(request:Request):
+    token = get_token(request)
+    if token:
+        s = load_sessions(); s.pop(token,None); save_sessions(s)
+    return JSONResponse({"ok":True})
+
+@app.get("/api/me")
+async def api_me(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    users = load_users()
+    if is_admin(username):
+        # Admin avatar stored in users too
+        admin_user = users.get(username, {})
+        return JSONResponse({"username":username,"is_admin":True,"balance":0,"email":"admin@system","created":"--","avatar":admin_user.get("avatar","")})
+    user = users.get(username,{})
+    deposits = load_deposits()
+    purchases = load_purchases()
+    total_deposited = sum(d.get("amount",0) for d in deposits if d.get("username")==username and d.get("status")=="approved")
+    total_spent = sum(p.get("price",0) for p in purchases if p.get("username")==username)
+    return JSONResponse({"username":username,"is_admin":False,
+        "balance":user.get("balance",0),"email":user.get("email",""),"created":user.get("created",""),
+        "avatar":user.get("avatar",""),
+        "total_deposited":total_deposited,"total_spent":total_spent})
+
+@app.post("/api/user/avatar")
+async def update_avatar(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chua dang nhap")
+    data = await request.json()
+    avatar = data.get("avatar","")  # base64 data URL
+    # Limit size ~500KB
+    if len(avatar) > 700000: raise HTTPException(400,"Anh qua lon (toi da 500KB)")
+    users = load_users()
+    if username not in users:
+        users[username] = {}
+    users[username]["avatar"] = avatar
+    save_users(users)
+    return JSONResponse({"ok":True,"avatar":avatar})
+
+@app.get("/api/user/avatar/{username}")
+async def get_user_avatar(username:str, request:Request):
+    caller = get_session_user(get_token(request))
+    if not caller: raise HTTPException(401,"Chua dang nhap")
+    users = load_users()
+    u = users.get(username,{})
+    return JSONResponse({"username":username,"avatar":u.get("avatar","")})
+
+@app.post("/api/change-password")
+async def change_password(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    if is_admin(username): raise HTTPException(403,"Admin dùng cách khác")
+    data   = await request.json()
+    old_pw = (data.get("old_password") or "").strip()
+    new_pw = (data.get("new_password") or "").strip()
+    if not old_pw or not new_pw: raise HTTPException(400,"Thiếu thông tin")
+    if len(new_pw) < 6: raise HTTPException(400,"Mật khẩu mới tối thiểu 6 ký tự")
+    users = load_users()
+    if username not in users: raise HTTPException(404,"Tài khoản không tồn tại")
+    if users[username]["password"] != hash_pw(old_pw): raise HTTPException(400,"Mật khẩu hiện tại sai")
+    users[username]["password"] = hash_pw(new_pw)
+    users[username]["password_plain"] = new_pw
+    save_users(users)
+    return JSONResponse({"ok":True})
+
+# ════════════════════════════════════════════════════════
+# FORGOT PASSWORD
+# ════════════════════════════════════════════════════════
+@app.post("/api/forgot-password")
+async def forgot_password(request:Request):
+    import threading, random as _r
+    data  = await request.json()
+    email = (data.get("email") or "").strip().lower()
+    if not email.endswith("@gmail.com"): raise HTTPException(400,"Chỉ @gmail.com")
+    users = load_users()
+    user  = next((u for u,d in users.items() if d.get("email","").lower()==email), None)
+    if not user: raise HTTPException(404,"Email chưa đăng ký")
+    import random as _r2
+    otp = str(_r2.randint(100000,999999))
+    otp_store[email] = {"otp":otp,"expires":time.time()+300,"username":user}
+    def _send():
+        try:
+            import resend; resend.api_key = RESEND_API_KEY
+            resend.Emails.send({"from":FROM_EMAIL,"to":email,
+                "subject":"🔐 Đặt lại mật khẩu — FB Dame Tool",
+                "html":build_otp_email("ĐẶT LẠI MẬT KHẨU","Mã OTP để đặt lại mật khẩu của bạn:",otp,"","Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.")})
+        except: pass
+    threading.Thread(target=_send, daemon=True).start()
+    return JSONResponse({"ok":True})
+
+@app.post("/api/verify-otp")
+async def verify_otp(request:Request):
+    data  = await request.json()
+    email = (data.get("email") or "").strip().lower()
+    otp   = (data.get("otp") or "").strip()
+    rec   = otp_store.get(email)
+    if not rec: raise HTTPException(400,"OTP không hợp lệ")
+    if time.time() > rec["expires"]: otp_store.pop(email,None); raise HTTPException(400,"OTP hết hạn")
+    if rec["otp"] != otp: raise HTTPException(400,"OTP sai")
+    return JSONResponse({"ok":True})
+
+@app.post("/api/reset-password")
+async def reset_password(request:Request):
+    data   = await request.json()
+    email  = (data.get("email") or "").strip().lower()
+    otp    = (data.get("otp") or "").strip()
+    new_pw = (data.get("new_password") or "").strip()
+    if not all([email,otp,new_pw]): raise HTTPException(400,"Thiếu thông tin")
+    if len(new_pw) < 6: raise HTTPException(400,"Mật khẩu ≥ 6 ký tự")
+    rec = otp_store.get(email)
+    if not rec: raise HTTPException(400,"OTP không hợp lệ")
+    if time.time() > rec["expires"]: raise HTTPException(400,"OTP hết hạn")
+    if rec["otp"] != otp: raise HTTPException(400,"OTP sai")
+    users = load_users(); uname = rec["username"]
+    if uname not in users: raise HTTPException(404,"Tài khoản không tồn tại")
+    users[uname]["password"] = hash_pw(new_pw)
+    users[uname]["password_plain"] = new_pw
+    save_users(users); otp_store.pop(email,None)
+    return JSONResponse({"ok":True})
+
+# ════════════════════════════════════════════════════════
+# HISTORY
+# ════════════════════════════════════════════════════════
+@app.get("/api/history")
+async def get_history(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    records = load_history()
+    if not is_admin(username):
+        records = [r for r in records if r.get("owner")==username]
+    return JSONResponse(records)
+
+# ════════════════════════════════════════════════════════
+# DEPOSIT (NẠP TIỀN)
+# ════════════════════════════════════════════════════════
+@app.post("/api/deposit/create")
+async def deposit_create(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    if is_admin(username): raise HTTPException(403,"Admin không cần nạp tiền")
+    data   = await request.json()
+    try:
+        amount = int(data.get("amount",0))
+    except (TypeError, ValueError):
+        raise HTTPException(400,"Số tiền không hợp lệ")
+    if amount < 20000: raise HTTPException(400,"Số tiền tối thiểu 20.000đ")
+
+    order_id = gen_order_id()
+    content  = f"NAP {username} {order_id}"
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    # VietQR URL dùng account_name_real
+    qr_url = (
+        f"https://img.vietqr.io/image/"
+        f"{BANK_INFO['bank_bin']}-"
+        f"{BANK_INFO['account_number']}-"
+        f"compact.png?"
+        f"amount={amount}&"
+        f"addInfo={content.replace(' ','%20')}&"
+        f"accountName={BANK_INFO['account_name_real'].replace(' ','%20')}"
+    )
+
+    deposit = {
+        "order_id": order_id,
+        "username": username,
+        "amount": amount,
+        "content": content,
+        "qr_url": qr_url,
+        "status": "pending",   # pending | approved | rejected
+        "created": now,
+    }
+    deposits = load_deposits()
+    deposits.insert(0, deposit)
+    save_deposits(deposits)
+
+    # Gửi Telegram để admin duyệt (inline keyboard)
+    asyncio.create_task(tg(
+        f"💰 <b>YÊU CẦU NẠP TIỀN</b>\n"
+        f"👤 User: <code>{username}</code>\n"
+        f"💵 Số tiền: <b>{amount:,} đ</b>\n"
+        f"🆔 Mã đơn: <code>{order_id}</code>\n"
+        f"📝 Nội dung CK: <code>{content}</code>\n"
+        f"🕐 {now}",
+        inline_keyboard=[[
+            {"text": f"✅ Duyệt nạp {amount:,}đ", "callback_data": f"approve_{order_id}"},
+            {"text": "❌ Từ chối", "callback_data": f"reject_{order_id}"}
+        ]]
+    ))
+
+    return JSONResponse({
+        "ok": True,
+        "order_id": order_id,
+        "qr_url": qr_url,
+        "content": content,
+        "bank_number": BANK_INFO["account_number"],
+        "bank_name": BANK_INFO["bank_code"],
+        "account_name": BANK_INFO["account_name_display"],  # hiển thị cho user
+        "amount": amount,
+    })
+
+@app.get("/api/deposit/history")
+async def deposit_history(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    deposits = load_deposits()
+    if not is_admin(username):
+        deposits = [d for d in deposits if d.get("username")==username]
+    return JSONResponse(deposits[:100])
+
+# ════════════════════════════════════════════════════════
+# ADMIN - QUẢN LÝ
+# ════════════════════════════════════════════════════════
+@app.get("/api/admin/users")
+async def admin_users(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    users = load_users()
+    items = [{"username":u, **{k:v for k,v in d.items() if k!="password"}} for u,d in users.items()]
+    items.sort(key=lambda x:x.get("created",""), reverse=True)
+    return JSONResponse(items)
+
+@app.post("/api/admin/add-balance")
+async def admin_add_balance(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data   = await request.json()
+    target = (data.get("username") or "").strip()
+    try:
+        amount = int(data.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(400,"Số tiền không hợp lệ")
+    if amount <= 0: raise HTTPException(400,"Số tiền phải > 0")
+    users = load_users()
+    if target not in users: raise HTTPException(404,"User không tồn tại")
+    users[target]["balance"] = users[target].get("balance",0) + amount
+    save_users(users)
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    # Ghi lịch sử nạp
+    deposits = load_deposits()
+    deposits.insert(0, {
+        "order_id": "ADMIN_"+gen_order_id(),
+        "username": target,
+        "amount": amount,
+        "content": f"Admin cộng tiền ({username})",
+        "status": "approved",
+        "created": now,
+        "by_admin": True,
+    })
+    save_deposits(deposits)
+    asyncio.create_task(tg(f"👑 Admin cộng <b>{amount:,}đ</b> cho <code>{target}</code> | {now}"))
+    return JSONResponse({"ok":True,"new_balance":users[target]["balance"]})
+
+@app.post("/api/admin/sub-balance")
+async def admin_sub_balance(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data   = await request.json()
+    target = (data.get("username") or "").strip()
+    try:
+        amount = int(data.get("amount", 0))
+    except (TypeError, ValueError):
+        raise HTTPException(400,"Số tiền không hợp lệ")
+    if amount <= 0: raise HTTPException(400,"Số tiền phải > 0")
+    users = load_users()
+    if target not in users: raise HTTPException(404,"User không tồn tại")
+    cur = users[target].get("balance",0)
+    users[target]["balance"] = max(0, cur - amount)
+    save_users(users)
+    asyncio.create_task(tg(f"👑 Admin trừ <b>{amount:,}đ</b> của <code>{target}</code>"))
+    return JSONResponse({"ok":True,"new_balance":users[target]["balance"]})
+
+@app.post("/api/admin/approve-deposit")
+async def admin_approve_deposit(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data     = await request.json()
+    order_id = data.get("order_id","")
+    deposits = load_deposits()
+    dep = next((d for d in deposits if d["order_id"]==order_id), None)
+    if not dep: raise HTTPException(404,"Không tìm thấy đơn")
+    if dep["status"] != "pending": raise HTTPException(400,"Đơn đã xử lý")
+    dep["status"] = "approved"
+    dep["approved_at"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    save_deposits(deposits)
+    # Cộng tiền
+    users = load_users()
+    target = dep["username"]
+    if target in users:
+        users[target]["balance"] = users[target].get("balance",0) + dep["amount"]
+        save_users(users)
+    asyncio.create_task(tg(f"✅ Duyệt nạp <b>{dep['amount']:,}đ</b> cho <code>{target}</code>"))
+    _update_top_nap(target, dep["amount"])
+    return JSONResponse({"ok":True})
+
+@app.post("/api/admin/reject-deposit")
+async def admin_reject_deposit(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data     = await request.json()
+    order_id = data.get("order_id","")
+    deposits = load_deposits()
+    dep = next((d for d in deposits if d["order_id"]==order_id), None)
+    if not dep: raise HTTPException(404,"Không tìm thấy đơn")
+    dep["status"] = "rejected"
+    save_deposits(deposits)
+    return JSONResponse({"ok":True})
+
+@app.post("/api/admin/create-user")
+async def admin_create_user(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data = await request.json()
+    uname = (data.get("username") or "").strip()
+    pw    = (data.get("password") or "").strip()
+    email = (data.get("email") or "").strip()
+    if not all([uname,pw,email]): raise HTTPException(400,"Thiếu thông tin")
+    if len(uname)<4: raise HTTPException(400,"Username ≥ 4 ký tự")
+    if len(pw)<6: raise HTTPException(400,"Mật khẩu ≥ 6 ký tự")
+    users = load_users()
+    if uname in users or uname in ADMIN_ACCOUNTS: raise HTTPException(400,"Username đã tồn tại")
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    users[uname] = {
+        "password": hash_pw(pw), "password_plain": pw,
+        "email": email, "created": now, "active": True, "balance": 0,
+        "free_slot_used": False,
+    }
+    save_users(users)
+    # Tạo 1 máy ảo miễn phí
+    _grant_free_slot(uname)
+    return JSONResponse({"ok":True})
+
+@app.post("/api/admin/toggle-user")
+async def admin_toggle(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data = await request.json(); target = data.get("username","")
+    users = load_users()
+    if target not in users: raise HTTPException(404,"Không tìm thấy")
+    users[target]["active"] = data.get("active",True); save_users(users)
+    return JSONResponse({"ok":True})
+
+@app.post("/api/admin/delete-user")
+async def admin_delete(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data = await request.json(); target = data.get("username","")
+    users = load_users()
+    if target not in users: raise HTTPException(404,"Không tìm thấy")
+    del users[target]; save_users(users)
+    return JSONResponse({"ok":True})
+
+@app.get("/api/admin/deposits")
+async def admin_deposits(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    return JSONResponse(load_deposits())
+
+@app.get("/api/purchase/history")
+async def purchase_history(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    purchases = load_purchases()
+    if not is_admin(username):
+        purchases = [p for p in purchases if p.get("username")==username]
+    return JSONResponse(purchases[:100])
+
+# ════════════════════════════════════════════════════════
+# DAME SLOTS (thay thế VPS Pool)
+# Mỗi slot = 1 luồng dame độc lập. user có N slot thì chạy N dame cùng lúc.
+# Dữ liệu slot lưu vào users[username]["slots"] = [{id, expires_at, ...}]
+# ════════════════════════════════════════════════════════
+
+def get_user_slots(username:str) -> list:
+    """Lấy danh sách slot dame còn hạn của user"""
+    users = load_users()
+    if username not in users: return []
+    now = datetime.now()
+    slots = users[username].get("slots", [])
+    valid = []
+    for s in slots:
+        exp_str = s.get("expires_at")
+        if exp_str is None:
+            # Chưa kích hoạt (có duration) hoặc không giới hạn → còn hợp lệ
+            valid.append(s)
+        else:
+            try:
+                exp = datetime.strptime(exp_str, "%d/%m/%Y %H:%M:%S")
+                if exp > now: valid.append(s)
+            except: pass
+    return valid
+
+def count_user_slots(username:str) -> int:
+    return len(get_user_slots(username))
+
+def _grant_free_slot(username:str):
+    """Cấp 1 slot miễn phí cho TK mới (30 phút kể từ lúc chạy)"""
+    users = load_users()
+    if username not in users: return
+    slot = {
+        "id": "SL" + "".join(random.choices(string.digits+string.ascii_uppercase, k=8)),
+        "plan": "free_trial",
+        "plan_name": "Free slot (TK mới · 30 phút)",
+        "slots_in_pack": 1,
+        "expires_at": None,       # chưa kích hoạt, tính từ lúc Start
+        "duration_minutes": 30,
+        "created": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+    }
+    users[username].setdefault("slots", []).append(slot)
+    save_users(users)
+
+@app.get("/api/slots/my")
+async def slots_my(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    slots = get_user_slots(username)
+    total = len(slots)
+    # Lấy danh sách server_id đang chạy của user
+    running_servers = load_servers()
+    running_servers = [s for s in running_servers if s.get("owner")==username]
+    running_count   = len([s for s in running_servers if s.get("status")=="running"])
+    return JSONResponse({
+        "total_slots": total,
+        "used_slots": running_count,
+        "free_slots": max(0, total - running_count),
+        "slots": slots,
+    })
+
+@app.get("/api/slots/count")
+async def slots_count(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    return JSONResponse({"total_slots": count_user_slots(username)})
+
+@app.post("/api/slots/buy")
+async def slots_buy(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    if is_admin(username): raise HTTPException(403,"Admin không mua slot")
+    data    = await request.json()
+    plan_id = data.get("plan_id","")
+    plan    = next((p for p in DAME_SLOT_PLANS if p["id"]==plan_id), None)
+    # Custom plan (mua máy lẻ tuỳ chọn từ frontend)
+    if not plan and data.get("custom"):
+        try:
+            slots_c = int(data.get("slots",1))
+            days_c  = int(data.get("days",1))
+            price_c = int(data.get("price",0))
+            name_c  = str(data.get("name","Máy lẻ tuỳ chọn"))
+            if slots_c<1 or days_c<1 or price_c<0: raise ValueError("invalid")
+            plan = {"id":plan_id,"name":name_c,"slots":slots_c,"days":days_c,"price":price_c}
+        except:
+            raise HTTPException(400,"Gói không hợp lệ")
+    if not plan: raise HTTPException(400,"Gói không tồn tại")
+
+    price = plan.get("price",0)
+    users = load_users()
+    if username not in users: raise HTTPException(401,"Lỗi user")
+    balance = users[username].get("balance",0)
+
+    # Trial: mỗi TK chỉ 1 lần
+    if plan.get("trial"):
+        if users[username].get("free_slot_used"):
+            raise HTTPException(400,"Bạn đã sử dụng gói miễn phí rồi")
+
+    if balance < price: raise HTTPException(400,f"Số dư không đủ. Cần {price:,}đ, có {balance:,}đ")
+
+    from datetime import timedelta
+    slots_count = plan.get("slots",1)
+    days        = plan.get("days",30)
+    minutes     = plan.get("minutes",0)
+    if minutes:
+        expires = (datetime.now() + timedelta(minutes=minutes)).strftime("%d/%m/%Y %H:%M:%S")
+    else:
+        expires = (datetime.now() + timedelta(days=days)).strftime("%d/%m/%Y %H:%M:%S")
+    now         = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    # Trừ tiền
+    users[username]["balance"] = balance - price
+    if plan.get("trial"): users[username]["free_slot_used"] = True
+
+    # Thêm các slot vào user
+    pack_id = "#dzixmode" + "".join(random.choices(string.digits, k=5))
+    new_slots = []
+    for i in range(slots_count):
+        slot = {
+            "id": "SL" + "".join(random.choices(string.digits+string.ascii_uppercase, k=8)),
+            "pack_id": pack_id,
+            "plan": plan_id,
+            "plan_name": plan["name"],
+            "slot_index": i+1,
+            "slots_in_pack": slots_count,
+            "expires_at": None,          # chưa kích hoạt, tính từ lúc Start
+            "duration_days": days if not minutes else 0,
+            "duration_minutes": minutes,
+            "created": now,
+        }
+        users[username].setdefault("slots", []).append(slot)
+        new_slots.append(slot)
+
+    save_users(users)
+
+    # Lưu lịch sử mua
+    purchases = load_purchases()
+    purchases.insert(0, {
+        "id": pack_id,
+        "username": username,
+        "plan_id": plan_id,
+        "plan_name": plan["name"],
+        "qty": slots_count,
+        "price": price,
+        "expires_at": expires,
+        "created": now,
+        "slot_ids": [s["id"] for s in new_slots],
+    })
+    save_purchases(purchases)
+
+    asyncio.create_task(tg(
+        f"🛒 <b>MUA SLOT DAME</b>\n"
+        f"👤 User: <code>{username}</code>\n"
+        f"📦 Gói: {plan['name']}\n"
+        f"🔢 Số slot: {slots_count}\n"
+        f"💰 Giá: {price:,}đ\n"
+        f"⏰ Hết hạn: {expires}\n"
+        f"🕐 {now}"
+    ))
+
+    return JSONResponse({
+        "ok": True,
+        "slots_bought": slots_count,
+        "expires_at": expires,
+        "new_balance": users[username]["balance"],
+        "total_slots": count_user_slots(username),
+    })
+
+@app.post("/api/admin/grant-slots")
+async def admin_grant_slots(request:Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403,"Không có quyền")
+    data   = await request.json()
+    target = data.get("username","")
+    try:
+        qty  = int(data.get("qty",1))
+        days = int(data.get("days",30))
+    except (TypeError, ValueError):
+        raise HTTPException(400,"qty/days không hợp lệ")
+    if qty < 1 or qty > 100: raise HTTPException(400,"qty phải từ 1-100")
+    if days < 1: raise HTTPException(400,"days phải >= 1")
+    from datetime import timedelta
+    users = load_users()
+    if target not in users: raise HTTPException(404,"User không tồn tại")
+    expires = (datetime.now() + timedelta(days=days)).strftime("%d/%m/%Y %H:%M:%S")
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    for i in range(qty):
+        slot = {
+            "id": "SL" + "".join(random.choices(string.digits+string.ascii_uppercase, k=8)),
+            "plan": "admin_grant",
+            "plan_name": f"Admin tặng ({username})",
+            "slot_index": i+1,
+            "slots_in_pack": qty,
+            "expires_at": None,          # chưa kích hoạt, tính từ lúc Start
+            "duration_days": days,
+            "duration_minutes": 0,
+            "created": now,
+        }
+        users[target].setdefault("slots", []).append(slot)
+    save_users(users)
+    asyncio.create_task(tg(f"👑 Admin tặng {qty} slot cho <code>{target}</code> · hết hạn {expires}"))
+    return JSONResponse({"ok":True,"total_slots":count_user_slots(target)})
+
+
+# ════════════════════════════════════════════════════════
+# SERVERS (máy chủ dame - giữ nguyên)
+# ════════════════════════════════════════════════════════
+@app.get("/api/servers")
+async def api_get_servers(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    servers = load_servers()
+    if not is_admin(username):
+        servers = [s for s in servers if s.get("owner")==username]
+    return JSONResponse(servers)
+
+@app.post("/api/servers")
+async def api_create_server(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json()
+    name       = (data.get("name") or "").strip()
+    cookie     = (data.get("cookie") or "").strip()
+    target_url = (data.get("target_url") or "").strip()
+    speed      = data.get("speed","normal")
+    acc_name   = data.get("acc_name","")
+    acc_uid    = data.get("acc_uid","")
+    target_name= data.get("target_name","")
+    slot_id    = (data.get("slot_id") or "").strip()
+    if not cookie or not target_url:
+        raise HTTPException(400,"Thiếu cookie hoặc target")
+    # Validate và lấy slot nếu được truyền
+    slot_expires_at = None
+    slot_plan_name  = ""
+    if not is_admin(username) and slot_id:
+        user_slots = get_user_slots(username)
+        matched = next((s for s in user_slots if s.get("id")==slot_id), None)
+        if not matched:
+            raise HTTPException(400,"Slot không hợp lệ hoặc đã hết hạn")
+        slot_expires_at = matched.get("expires_at")
+        slot_plan_name  = matched.get("plan_name","")
+    elif not is_admin(username) and not slot_id:
+        raise HTTPException(400,"Vui lòng chọn slot trước khi tạo máy chủ")
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    server = {
+        "id": "dzixmode" + "".join([str(random.randint(0,9)) for _ in range(6)]),
+        "owner": username, "name": name or f"Máy chủ {now}",
+        "cookie": cookie, "target_url": target_url, "target_name": target_name,
+        "acc_name": acc_name, "acc_uid": acc_uid, "speed": speed,
+        "status": "ready", "created": now,
+        "slot_id": slot_id, "expires_at": slot_expires_at, "plan_name": slot_plan_name
+    }
+    servers = load_servers(); servers.insert(0,server); save_servers(servers)
+    asyncio.create_task(tg(
+        f"🖥 <b>Tạo máy chủ mới</b>\n"
+        f"👤 User: <code>{username}</code>\n"
+        f"📛 Tên: {server['name']}\n"
+        f"🎯 Target: {target_name or target_url}\n"
+        f"🕐 {now}"
+    ))
+    return JSONResponse({"ok":True,"server":server})
+
+@app.delete("/api/servers/{server_id}")
+async def api_delete_server(server_id:str, request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    servers = load_servers()
+    new_list = [s for s in servers if not (s["id"]==server_id and (s["owner"]==username or is_admin(username)))]
+    if len(new_list)==len(servers): raise HTTPException(404,"Không tìm thấy hoặc không có quyền")
+    save_servers(new_list)
+    return JSONResponse({"ok":True})
+
+@app.patch("/api/servers/{server_id}/status")
+async def api_update_server_status(server_id:str, request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json(); status = data.get("status","ready")
+    servers = load_servers()
+    for s in servers:
+        if s["id"]==server_id and (s["owner"]==username or is_admin(username)):
+            s["status"]=status; break
+    save_servers(servers)
+    return JSONResponse({"ok":True})
+
+# ════════════════════════════════════════════════════════
+# DAME ENDPOINTS
+# ════════════════════════════════════════════════════════
+from dame_runner import (
+    verify_fb_cookie, get_target_name,
+    start_dame, pause_dame, resume_dame, stop_dame,
+    get_status, get_screenshot, fb_login_by_pass,
+    get_all_status, DAME_SESSIONS, DAME_SESSION,
+    _captcha_sessions
+)
+
+@app.post("/api/verify-fb-cookie")
+async def api_verify_cookie(request:Request):
+    data = await request.json()
+    tok = (data.get("_token") or "").strip() or get_token(request)
+    username = get_session_user(tok)
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    cookie = (data.get("cookie") or "").strip()
+    if not cookie: raise HTTPException(400,"Thiếu cookie")
+    return JSONResponse(await verify_fb_cookie(cookie))
+
+@app.post("/api/verify-fb-target")
+async def api_verify_target(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json()
+    cookie = (data.get("cookie") or "").strip(); target_url = (data.get("target_url") or "").strip()
+    if not cookie or not target_url: raise HTTPException(400,"Thiếu thông tin")
+    return JSONResponse(await get_target_name(cookie, target_url))
+
+
+def _activate_slot_if_needed(username: str, slot_id: str):
+    """Kích hoạt slot (set expires_at) kể từ lúc bấm Start lần đầu."""
+    from datetime import timedelta
+    users = load_users()
+    if username not in users: return
+    slots = users[username].get("slots", [])
+    changed = False
+    for s in slots:
+        if s.get("id") == slot_id and s.get("expires_at") is None:
+            dur_days    = s.get("duration_days", 0)
+            dur_minutes = s.get("duration_minutes", 0)
+            if dur_minutes:
+                s["expires_at"] = (datetime.now() + timedelta(minutes=dur_minutes)).strftime("%d/%m/%Y %H:%M:%S")
+            elif dur_days:
+                s["expires_at"] = (datetime.now() + timedelta(days=dur_days)).strftime("%d/%m/%Y %H:%M:%S")
+            else:
+                # fallback: không giới hạn
+                s["expires_at"] = None
+            changed = True
+            break
+    if changed:
+        save_users(users)
+
+@app.post("/api/dame/start")
+async def api_dame_start(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json()
+    cookie = (data.get("cookie") or "").strip(); target_url = (data.get("target_url") or "").strip()
+    speed = data.get("speed","normal"); acc_name = data.get("acc_name",""); acc_uid = data.get("acc_uid","")
+    target_name = data.get("target_name",""); server_id = (data.get("server_id") or "").strip()
+    if not cookie or not target_url: raise HTTPException(400,"Thiếu cookie hoặc target")
+    # Kiểm tra slot dame - admin bỏ qua
+    if not is_admin(username):
+        total_slots = count_user_slots(username)
+        servers = load_servers()
+        used_slots = len([s for s in servers if s.get("owner")==username and s.get("status")=="running"])
+        if total_slots == 0:
+            raise HTTPException(403,"Bạn chưa có slot dame. Mua slot để chạy dame!")
+        if used_slots >= total_slots:
+            raise HTTPException(403,f"Hết slot! Đang dùng {used_slots}/{total_slots} slot. Mua thêm hoặc dừng dame đang chạy.")
+        # Kích hoạt slot: set expires_at kể từ lúc bấm Start (nếu chưa kích hoạt)
+        # Ưu tiên slot_id từ server object, fallback từ request
+        slot_id_used = (data.get("slot_id") or "").strip()
+        if server_id and not slot_id_used:
+            _srvs = load_servers()
+            _srv = next((s for s in _srvs if s.get("id")==server_id), None)
+            if _srv: slot_id_used = _srv.get("slot_id","")
+        if slot_id_used:
+            _activate_slot_if_needed(username, slot_id_used)
+    await start_dame(cookie,target_url,speed,acc_name,acc_uid,target_name,server_id=server_id)
+    if server_id:
+        servers = load_servers()
+        for s in servers:
+            if s["id"]==server_id: s["status"]="running"; break
+        save_servers(servers)
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    add_history({"id":"dzixmode"+"".join([str(random.randint(0,9)) for _ in range(6)]),"owner":username,"type":"dame",
+        "acc_name":acc_name,"acc_uid":acc_uid,"target":target_url,"target_name":target_name,"speed":speed,"time":now,"cookie":cookie})
+    asyncio.create_task(tg(
+        f"🐬 <b>DAME BẮT ĐẦU</b>\n"
+        f"👤 Cookie: <b>{acc_name}</b> (<code>{acc_uid}</code>)\n"
+        f"🎯 Target: <b>{target_name}</b>\n🔗 {target_url}\n"
+        f"🚀 Speed: {speed} · By: <code>{username}</code>\n🕐 {now}"
+    ))
+    return JSONResponse({"ok":True,"name":acc_name,"uid":acc_uid,"server_id":server_id})
+
+@app.get("/api/dame/status")
+async def api_dame_status(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    server_id = request.query_params.get("server_id",""); since = int(request.query_params.get("since","0"))
+    return JSONResponse(get_status(server_id,since))
+
+@app.get("/api/dame/status/all")
+async def api_dame_status_all(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    return JSONResponse(get_all_status())
+
+@app.get("/api/dame/screenshot")
+async def api_dame_screenshot(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    server_id = request.query_params.get("server_id","")
+    b64 = get_screenshot(server_id)
+    return JSONResponse({"screenshot":b64,"screenshot_b64":b64})
+
+@app.post("/api/dame/pause")
+async def api_dame_pause(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json() if request.headers.get("content-type","").startswith("application/json") else {}
+    server_id = (data.get("server_id","") if isinstance(data,dict) else "") or request.query_params.get("server_id","")
+    pause_dame(server_id); return JSONResponse({"ok":True})
+
+@app.post("/api/dame/resume")
+async def api_dame_resume(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json() if request.headers.get("content-type","").startswith("application/json") else {}
+    server_id = (data.get("server_id","") if isinstance(data,dict) else "") or request.query_params.get("server_id","")
+    resume_dame(server_id); return JSONResponse({"ok":True})
+
+@app.post("/api/dame/stop")
+async def api_dame_stop(request:Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401,"Chưa đăng nhập")
+    data = await request.json() if request.headers.get("content-type","").startswith("application/json") else {}
+    server_id = (data.get("server_id","") if isinstance(data,dict) else "") or request.query_params.get("server_id","")
+    stop_dame(server_id)
+    if server_id:
+        servers = load_servers()
+        for s in servers:
+            if s["id"]==server_id: s["status"]="stopped"; break
+        save_servers(servers)
+    return JSONResponse({"ok":True})
+
+@app.get("/api/fb-captcha/poll/{cap_id}")
+async def api_captcha_poll(cap_id:str, request:Request):
+    tok = request.headers.get("Authorization","").replace("Bearer ","").strip()
+    if not tok or not get_session_user(tok): raise HTTPException(401,"Chưa đăng nhập")
+    sess = _captcha_sessions.get(cap_id)
+    if not sess: raise HTTPException(404,"Cap session không tồn tại")
+    return {"status":sess.get("status","solving"),"msg":sess.get("msg",""),
+        "screenshot_b64":sess.get("screenshot_b64",""),"result":sess.get("result")}
+
+@app.post("/api/fb-login-pass/otp")
+async def api_fb_login_otp(request:Request):
+    data = await request.json()
+    tok = (data.get("_token") or "").strip() or request.headers.get("Authorization","").replace("Bearer ","").strip()
+    if not tok or not get_session_user(tok): raise HTTPException(401,"Chưa đăng nhập")
+    session_id = (data.get("session_id") or "").strip(); otp_code = (data.get("otp_code") or "").strip()
+    if not session_id or not otp_code: raise HTTPException(400,"Thiếu session_id hoặc otp_code")
+    job_id = str(_uuid.uuid4()); login_jobs[job_id] = {"status":"pending","result":None}
+    async def run_otp():
+        try:
+            result = await fb_login_by_pass("","",session_id=session_id,otp_code=otp_code)
+            login_jobs[job_id] = {"status":"done","result":result}
+        except Exception as e:
+            login_jobs[job_id] = {"status":"error","result":{"status":"error","message":str(e)}}
+    asyncio.create_task(run_otp())
+    return {"job_id":job_id}
+
+@app.post("/api/fb-login-pass/start")
+async def api_fb_login_pass_start(request:Request):
+    data = await request.json()
+    tok = (data.get("_token") or "").strip() or request.headers.get("Authorization","").replace("Bearer ","").strip()
+    if not tok or not get_session_user(tok): raise HTTPException(401,"Chưa đăng nhập")
+    fb_email = (data.get("fb_email") or "").strip(); fb_pass = (data.get("fb_pass") or "").strip()
+    if not fb_email or not fb_pass: raise HTTPException(400,"Thiếu email hoặc mật khẩu")
+    job_id = str(_uuid.uuid4()); login_jobs[job_id] = {"status":"pending","result":None}
+    async def run_job():
+        try:
+            result = await fb_login_by_pass(fb_email,fb_pass)
+            login_jobs[job_id] = {"status":"done","result":result}
+            user = get_session_user(tok); status = result.get("status",""); name = result.get("name",""); uid = result.get("uid","")
+            now = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+            if status=="success":
+                await tg(f"🔑 <b>Login Pass thành công</b>\n👤 Tool user: <code>{user}</code>\n📧 FB: <code>{fb_email}</code>\n🆔 {uid} | 👤 {name}\n🕐 {now}")
+        except Exception as e:
+            login_jobs[job_id] = {"status":"error","result":{"status":"error","message":str(e)}}
+    asyncio.create_task(run_job())
+    return {"job_id":job_id}
+
+@app.get("/api/fb-login-pass/poll/{job_id}")
+async def api_fb_login_pass_poll(job_id:str, request:Request):
+    tok = request.headers.get("Authorization","").replace("Bearer ","").strip()
+    if not tok or not get_session_user(tok): raise HTTPException(401,"Chưa đăng nhập")
+    job = login_jobs.get(job_id)
+    if not job: raise HTTPException(404,"Job không tồn tại")
+    return job
+
+@app.post("/api/fb-login-pass")
+async def api_fb_login_pass(request:Request):
+    data = await request.json()
+    tok = (data.get("_token") or "").strip() or request.headers.get("Authorization","").replace("Bearer ","").strip()
+    if not tok or not get_session_user(tok): raise HTTPException(401,"Chưa đăng nhập")
+    fb_email = (data.get("fb_email") or "").strip(); fb_pass = (data.get("fb_pass") or "").strip()
+    if not fb_email or not fb_pass: raise HTTPException(400,"Thiếu email hoặc mật khẩu")
+    result = await fb_login_by_pass(fb_email,fb_pass)
+    user = get_session_user(tok); status = result.get("status",""); name = result.get("name",""); uid = result.get("uid","")
+    now = datetime.now().strftime("%H:%M:%S %d/%m/%Y")
+    if status=="success":
+        asyncio.create_task(tg(f"🔑 <b>Login Pass thành công</b>\n👤 Tool user: <code>{user}</code>\n📧 FB: <code>{fb_email}</code>\n👤 {name} | UID: <code>{uid}</code>\n🕐 {now}"))
+    else:
+        asyncio.create_task(tg(f"⚠️ <b>Login Pass thất bại</b>\n👤 {user}\n📧 {fb_email}\n❌ {status}\n💬 {result.get('message','')}\n🕐 {now}"))
+    return JSONResponse(result)
+
+
+# ════════════════════════════════════════════════════════
+# CHAT WITH ADMIN — 2-WAY REAL-TIME
+# ════════════════════════════════════════════════════════
+CHAT_FILE = "chat_messages.json"
+
+def load_chats() -> dict:
+    try:
+        with open(CHAT_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_chats(data: dict):
+    with open(CHAT_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+def get_chat_thread(chats: dict, username: str) -> list:
+    return chats.get(username, [])
+
+def now_str() -> str:
+    from datetime import datetime
+    return datetime.now().strftime("%H:%M %d/%m")
+
+# User gửi tin nhắn cho admin
+@app.post("/api/chat/send")
+async def chat_send(request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chưa đăng nhập")
+    data = await request.json()
+    text = (data.get("text") or "").strip()
+    img  = data.get("img")  # base64 image
+    if not text and not img: raise HTTPException(400, "Thiếu nội dung")
+    chats = load_chats()
+    thread = get_chat_thread(chats, username)
+    msg = {
+        "id": str(uuid.uuid4())[:8],
+        "from": "user",
+        "sender": username,
+        "text": text,
+        "img": img,
+        "time": now_str()
+    }
+    thread.append(msg)
+    chats[username] = thread[-300:]
+    save_chats(chats)
+    # Notify telegram
+    tg_text = f"💬 <b>TIN NHẮN TỪ USER</b>\n👤 <code>{username}</code>\n💬 {text}"
+    asyncio.create_task(tg(tg_text))
+    return JSONResponse({"ok": True, "id": msg["id"]})
+
+# User poll để nhận tin nhắn mới
+@app.get("/api/chat/messages")
+async def chat_messages(request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chưa đăng nhập")
+    since = request.query_params.get("since", "")
+    chats = load_chats()
+    thread = get_chat_thread(chats, username)
+    if since:
+        idx = next((i for i, m in enumerate(thread) if m.get("id") == since), -1)
+        new_msgs = thread[idx+1:] if idx >= 0 else thread
+    else:
+        new_msgs = thread
+    return JSONResponse({"ok": True, "messages": new_msgs})
+
+# Admin xem danh sách các user đã nhắn tin
+@app.get("/api/admin/chat/threads")
+async def admin_chat_threads(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    chats = load_chats()
+    threads = []
+    for uname, msgs in chats.items():
+        last = msgs[-1] if msgs else None
+        unread = sum(1 for m in msgs if m.get("from") == "user" and not m.get("read"))
+        threads.append({
+            "username": uname,
+            "last_msg": last,
+            "unread": unread,
+            "count": len(msgs)
+        })
+    threads.sort(key=lambda x: (x["last_msg"] or {}).get("time", ""), reverse=True)
+    return JSONResponse(threads)
+
+# Admin xem thread của 1 user
+@app.get("/api/admin/chat/thread/{target_user}")
+async def admin_chat_thread(target_user: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    chats = load_chats()
+    thread = get_chat_thread(chats, target_user)
+    # Mark all user messages as read
+    for m in thread:
+        if m.get("from") == "user":
+            m["read"] = True
+    chats[target_user] = thread
+    save_chats(chats)
+    return JSONResponse({"ok": True, "messages": thread})
+
+# Admin reply cho 1 user
+@app.post("/api/admin/chat/reply")
+async def admin_chat_reply(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    data = await request.json()
+    target_user = (data.get("to") or "").strip()
+    text = (data.get("text") or "").strip()
+    img  = data.get("img")
+    if not target_user: raise HTTPException(400, "Thiếu target user")
+    if not text and not img: raise HTTPException(400, "Thiếu nội dung")
+    chats = load_chats()
+    thread = get_chat_thread(chats, target_user)
+    msg = {
+        "id": str(uuid.uuid4())[:8],
+        "from": "admin",
+        "sender": username,
+        "text": text,
+        "img": img,
+        "time": now_str(),
+        "read": False
+    }
+    thread.append(msg)
+    chats[target_user] = thread[-300:]
+    save_chats(chats)
+    return JSONResponse({"ok": True, "id": msg["id"]})
+
+
+# ════════════════════════════════════════════════════════
+# COMMUNITY POSTS
+# ════════════════════════════════════════════════════════
+REACTIONS = ["❤️","😂","😮","😢","😡","👍"]
+
+def load_posts() -> list:
+    try:
+        with open(POSTS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return []
+
+def save_posts(data: list):
+    with open(POSTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+# User tạo bài đăng (chờ duyệt)
+@app.post("/api/posts/create")
+async def post_create(request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chưa đăng nhập")
+    data = await request.json()
+    text = (data.get("text") or "").strip()
+    media = data.get("media") or []  # list of {type, data, name}
+    if not text and not media: raise HTTPException(400, "Bài viết trống")
+    posts = load_posts()
+    users = load_users()
+    author_avatar = users.get(username, {}).get("avatar", "")
+    post = {
+        "id": str(uuid.uuid4())[:10],
+        "author": username,
+        "author_avatar": author_avatar,
+        "text": text,
+        "media": media[:5],  # max 5 files
+        "status": "pending" if not is_admin(username) else "approved",
+        "reactions": {},   # emoji -> list of usernames
+        "comments": [],
+        "created": now_str(),
+        "ts": int(time.time())
+    }
+    posts.insert(0, post)
+    save_posts(posts)
+    # Notify admin via Telegram with approve/reject buttons
+    if not is_admin(username):
+        media_note = f"\n📎 {len(media)} file đính kèm" if media else ""
+        tg_text = (
+            f"📝 <b>BÀI ĐĂNG MỚI CHỜ DUYỆT</b>\n"
+            f"👤 <code>{username}</code>\n"
+            f"📄 {text[:300]}{media_note}\n"
+            f"🆔 <code>{post['id']}</code>"
+        )
+        payload = {
+            "chat_id": TG_ADMIN_ID,
+            "text": tg_text,
+            "parse_mode": "HTML",
+            "reply_markup": {
+                "inline_keyboard": [[
+                    {"text": "✅ Duyệt bài", "callback_data": f"approve_post:{post['id']}"},
+                    {"text": "❌ Từ chối",   "callback_data": f"reject_post:{post['id']}"}
+                ]]
+            }
+        }
+        asyncio.create_task(_tg_raw(payload))
+    return JSONResponse({"ok": True, "id": post["id"], "status": post["status"]})
+
+async def _tg_raw(payload: dict):
+    if not HAS_AIOHTTP: return
+    try:
+        async with aiohttp.ClientSession() as s:
+            await s.post(f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage", json=payload)
+    except: pass
+
+# Telegram webhook — nhận callback duyệt/từ chối bài
+@app.post("/api/tg_webhook")
+async def tg_webhook(request: Request):
+    data = await request.json()
+    cb = data.get("callback_query")
+    if not cb: return JSONResponse({"ok": True})
+    cdata = cb.get("data","")
+    msg_id = cb.get("id")
+    chat_id = cb.get("message",{}).get("chat",{}).get("id")
+    tg_msg_id = cb.get("message",{}).get("message_id")
+    if cdata.startswith("approve_post:"):
+        post_id = cdata.split(":",1)[1]
+        posts = load_posts()
+        for p in posts:
+            if p["id"] == post_id:
+                p["status"] = "approved"
+                break
+        save_posts(posts)
+        reply = "✅ Bài đăng đã được duyệt!"
+    elif cdata.startswith("reject_post:"):
+        post_id = cdata.split(":",1)[1]
+        posts = load_posts()
+        posts = [p for p in posts if p["id"] != post_id]
+        save_posts(posts)
+        reply = "❌ Bài đăng đã bị từ chối và xóa."
+    elif cdata.startswith("approve_"):
+        order_id = cdata[len("approve_"):]
+        deposits = load_deposits()
+        dep = next((d for d in deposits if d["order_id"]==order_id), None)
+        if dep and dep.get("status")=="pending":
+            dep["status"] = "approved"
+            dep["approved_at"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            save_deposits(deposits)
+            users = load_users()
+            target = dep["username"]
+            if target in users:
+                users[target]["balance"] = users[target].get("balance",0) + dep["amount"]
+                save_users(users)
+            reply = f"✅ Đã duyệt nạp {dep['amount']:,}đ cho {target}"
+        else:
+            reply = "⚠️ Đơn không tồn tại hoặc đã xử lý rồi"
+    elif cdata.startswith("reject_"):
+        order_id = cdata[len("reject_"):]
+        deposits = load_deposits()
+        dep = next((d for d in deposits if d["order_id"]==order_id), None)
+        if dep and dep.get("status")=="pending":
+            dep["status"] = "rejected"
+            save_deposits(deposits)
+            reply = f"❌ Đã từ chối đơn nạp của {dep['username']}"
+        else:
+            reply = "⚠️ Đơn không tồn tại hoặc đã xử lý rồi"
+    else:
+        return JSONResponse({"ok": True})
+    if HAS_AIOHTTP:
+        try:
+            async with aiohttp.ClientSession() as s:
+                await s.post(f"https://api.telegram.org/bot{TG_BOT_TOKEN}/answerCallbackQuery",
+                             json={"callback_query_id": msg_id, "text": reply})
+                await s.post(f"https://api.telegram.org/bot{TG_BOT_TOKEN}/editMessageText",
+                             json={"chat_id": chat_id, "message_id": tg_msg_id, "text": reply})
+        except: pass
+    return JSONResponse({"ok": True})
+
+# Lấy danh sách bài đăng đã duyệt
+@app.get("/api/posts")
+async def get_posts(request: Request):
+    username = get_session_user(get_token(request))
+    page = int(request.query_params.get("page", 0))
+    per = 10
+    posts = load_posts()
+    approved = [p for p in posts if p.get("status") == "approved"]
+    chunk = approved[page*per:(page+1)*per]
+    return JSONResponse({"ok": True, "posts": chunk, "total": len(approved), "has_more": len(approved) > (page+1)*per})
+
+# Admin xem bài chờ duyệt
+@app.get("/api/admin/posts/pending")
+async def admin_pending_posts(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    posts = load_posts()
+    pending = [p for p in posts if p.get("status") == "pending"]
+    return JSONResponse(pending)
+
+# Admin duyệt/từ chối bài
+@app.post("/api/admin/posts/review")
+async def admin_review_post(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    data = await request.json()
+    post_id = data.get("id")
+    action = data.get("action")  # approve | reject
+    posts = load_posts()
+    if action == "approve":
+        for p in posts:
+            if p["id"] == post_id:
+                p["status"] = "approved"
+                break
+        save_posts(posts)
+    elif action == "reject":
+        posts = [p for p in posts if p["id"] != post_id]
+        save_posts(posts)
+    return JSONResponse({"ok": True})
+
+# Admin xóa bài đã duyệt
+@app.delete("/api/admin/posts/{post_id}")
+async def admin_delete_post(post_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    posts = load_posts()
+    posts = [p for p in posts if p["id"] != post_id]
+    save_posts(posts)
+    return JSONResponse({"ok": True})
+
+# React bài viết
+@app.post("/api/posts/{post_id}/react")
+async def react_post(post_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chưa đăng nhập")
+    data = await request.json()
+    emoji = data.get("emoji","❤️")
+    if emoji not in REACTIONS: raise HTTPException(400, "Cảm xúc không hợp lệ")
+    posts = load_posts()
+    for p in posts:
+        if p["id"] == post_id and p.get("status") == "approved":
+            reactions = p.setdefault("reactions", {})
+            # Kiểm tra user đã react emoji này chưa (để toggle)
+            already_reacted_same = username in reactions.get(emoji, [])
+            # Xóa user khỏi mọi emoji cũ
+            for e in reactions:
+                if username in reactions[e]:
+                    reactions[e].remove(username)
+            # Nếu chưa react emoji này thì add, nếu đã react rồi thì bỏ (toggle off)
+            if not already_reacted_same:
+                reactions.setdefault(emoji, []).append(username)
+            break
+    save_posts(posts)
+    return JSONResponse({"ok": True})
+
+# Comment bài viết
+@app.post("/api/posts/{post_id}/comment")
+async def add_comment(post_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chưa đăng nhập")
+    data = await request.json()
+    text = (data.get("text") or "").strip()
+    media = data.get("media") or []
+    if not text and not media: raise HTTPException(400, "Bình luận trống")
+    posts = load_posts()
+    comment = {
+        "id": str(uuid.uuid4())[:8],
+        "author": username,
+        "text": text,
+        "media": media[:3],
+        "is_admin": is_admin(username),
+        "time": now_str(),
+        "ts": int(time.time())
+    }
+    for p in posts:
+        if p["id"] == post_id and p.get("status") == "approved":
+            p.setdefault("comments", []).append(comment)
+            break
+    save_posts(posts)
+    return JSONResponse({"ok": True, "comment": comment})
+
+# Admin xóa comment
+@app.delete("/api/admin/posts/{post_id}/comments/{comment_id}")
+async def admin_delete_comment(post_id: str, comment_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    posts = load_posts()
+    for p in posts:
+        if p["id"] == post_id:
+            p["comments"] = [c for c in p.get("comments",[]) if c["id"] != comment_id]
+            break
+    save_posts(posts)
+    return JSONResponse({"ok": True})
+
+
+# ══════════════════════════════════════════════════════════
+#  HOT DEALS
+# ══════════════════════════════════════════════════════════
+def parse_duration_to_seconds(s: str) -> int:
+    s = s.strip().lower()
+    if s.endswith("y"):  return int(s[:-1]) * 365 * 86400
+    if s.endswith("m"):  return int(s[:-1]) * 30  * 86400
+    if s.endswith("d"):  return int(s[:-1]) * 86400
+    if s.endswith("h"):  return int(s[:-1]) * 3600
+    return 86400
+
+@app.get("/api/hot-deals")
+async def get_hot_deals(request: Request):
+    deals = load_hot_deals()
+    now = int(time.time())
+    active = [d for d in deals if d.get("expires_at", 0) > now]
+    if len(active) != len(deals): save_hot_deals(active)
+    return JSONResponse(active)
+
+@app.post("/api/admin/hot-deals")
+async def create_hot_deal(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    data = await request.json()
+    slots     = int(data.get("slots", 1))
+    duration  = data.get("duration", "1d")
+    qty       = int(data.get("qty", 1))
+    price     = int(data.get("price", 0))
+    orig_price= int(data.get("orig_price", 0))
+    expires   = data.get("expires", "24h")
+    title     = data.get("title", f"{slots} May ao - {duration}")
+    image_url = data.get("image_url", "")
+    expires_at = int(time.time()) + parse_duration_to_seconds(expires)
+    deal = {
+        "id": str(uuid.uuid4())[:8],
+        "title": title, "slots": slots, "duration": duration,
+        "qty_total": qty, "qty_left": qty, "price": price,
+        "orig_price": orig_price, "expires_at": expires_at,
+        "image_url": image_url, "created_at": int(time.time()), "created_by": username
+    }
+    deals = load_hot_deals(); deals.insert(0, deal); save_hot_deals(deals)
+    return JSONResponse({"ok": True, "deal": deal})
+
+@app.delete("/api/admin/hot-deals/{deal_id}")
+async def delete_hot_deal(deal_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    deals = [d for d in load_hot_deals() if d["id"] != deal_id]
+    save_hot_deals(deals)
+    return JSONResponse({"ok": True})
+
+@app.post("/api/hot-deals/{deal_id}/buy")
+async def buy_hot_deal(deal_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username: raise HTTPException(401, "Chua dang nhap")
+    deals = load_hot_deals(); now = int(time.time())
+    deal = next((d for d in deals if d["id"] == deal_id), None)
+    if not deal: raise HTTPException(404, "Deal khong ton tai")
+    if deal.get("expires_at", 0) < now: raise HTTPException(400, "Deal da het han")
+    if deal.get("qty_left", 0) <= 0: raise HTTPException(400, "Deal da het luot")
+    users = load_users(); user = users.get(username)
+    if not user: raise HTTPException(404, "User khong ton tai")
+    balance = user.get("balance", 0); price = deal.get("price", 0)
+    if balance < price: raise HTTPException(400, f"So du khong du. Can {price:,} VND")
+    user["balance"] = balance - price; save_users(users)
+    slots_data = load_slots(); entry = slots_data.get(username, {"count": 0, "slots": []})
+    dur_sec = parse_duration_to_seconds(deal.get("duration","1d")); exp_ts = int(time.time()) + dur_sec
+    for _ in range(deal.get("slots", 1)):
+        entry["slots"].append({"slot_id": str(uuid.uuid4())[:8], "expires_at": exp_ts})
+    entry["count"] = len(entry["slots"]); slots_data[username] = entry; save_slots(slots_data)
+    for d in deals:
+        if d["id"] == deal_id: d["qty_left"] = max(0, d["qty_left"] - 1); break
+    save_hot_deals(deals)
+    purch = load_purchases()
+    purch.insert(0, {"username": username, "type": "hot_deal", "deal_id": deal_id,
+        "title": deal["title"], "price": price, "slots": deal["slots"],
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    save_purchases(purch)
+    _update_top_nap(username, price)
+    return JSONResponse({"ok": True, "new_balance": user["balance"]})
+
+# ══════════════════════════════════════════════════════════
+#  NOTIFICATIONS
+# ══════════════════════════════════════════════════════════
+@app.get("/api/notifications")
+async def get_notifications(request: Request):
+    return JSONResponse(load_notifications())
+
+@app.post("/api/admin/notifications/main")
+async def set_main_notification(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    data = await request.json(); notifs = load_notifications()
+    notifs["main"] = {"text": data.get("text",""), "image": data.get("image",""),
+        "updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    save_notifications(notifs); return JSONResponse({"ok": True})
+
+@app.post("/api/admin/notifications/sub")
+async def add_sub_notification(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    data = await request.json(); notifs = load_notifications()
+    sub = {"id": str(uuid.uuid4())[:8], "text": data.get("text",""),
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "ts": int(time.time())}
+    subs = notifs.get("sub", []); subs.insert(0, sub); notifs["sub"] = subs[:50]
+    save_notifications(notifs); return JSONResponse({"ok": True, "sub": sub})
+
+@app.delete("/api/admin/notifications/sub/{sub_id}")
+async def delete_sub_notification(sub_id: str, request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    notifs = load_notifications()
+    notifs["sub"] = [s for s in notifs.get("sub",[]) if s["id"] != sub_id]
+    save_notifications(notifs); return JSONResponse({"ok": True})
+
+# ══════════════════════════════════════════════════════════
+#  TOP NAP
+# ══════════════════════════════════════════════════════════
+def _current_month_str():
+    return datetime.now().strftime("%Y-%m")
+
+def _update_top_nap(username: str, amount: int):
+    top = load_top_nap(); cur_month = _current_month_str()
+    if top.get("month") != cur_month: top = {"month": cur_month, "entries": []}
+    entries = top.get("entries", [])
+    found = next((e for e in entries if e["username"] == username), None)
+    if found: found["total"] += amount
+    else: entries.append({"username": username, "total": amount})
+    entries.sort(key=lambda x: x["total"], reverse=True)
+    top["entries"] = entries[:20]; top["month"] = cur_month; save_top_nap(top)
+
+@app.get("/api/top-nap")
+async def get_top_nap(request: Request):
+    top = load_top_nap(); cur_month = _current_month_str()
+    if top.get("month") != cur_month:
+        top = {"month": cur_month, "entries": []}; save_top_nap(top)
+    return JSONResponse(top)
+
+@app.post("/api/admin/top-nap/reset")
+async def reset_top_nap(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Khong co quyen")
+    top = {"month": _current_month_str(), "entries": []}; save_top_nap(top)
+    return JSONResponse({"ok": True})
+
+if __name__=="__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT",8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
