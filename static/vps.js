@@ -228,7 +228,12 @@ async function openMyVps(){
     list.innerHTML='';
     var now=new Date();
     vps.forEach(function(v){
-      var expHtml='<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ Không giới hạn</div>';
+      var durLabel='';
+      if(v.duration_minutes){durLabel=v.duration_minutes+' phút';}
+      else if(v.duration_days){durLabel=v.duration_days+' ngày';}
+      var expHtml=durLabel
+        ?'<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ '+durLabel+' (tính từ lúc chạy)</div>'
+        :'<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ Tính từ lúc chạy</div>';
       if(v.expires_at){
         try{
           var p2=v.expires_at.split(' ');var dp=p2[0].split('/');var tp=p2[1].split(':');
