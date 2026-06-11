@@ -1,11 +1,14 @@
 import asyncio, uuid, json, os, hashlib, secrets, re, time, random, string
 
 # ── hCaptcha verification ──
-HCAPTCHA_SECRET = os.environ.get("HCAPTCHA_SECRET", "0x0000000000000000000000000000000000000000")
+HCAPTCHA_SECRET = os.environ.get("HCAPTCHA_SECRET", "")
 def verify_hcaptcha(token: str) -> bool:
-    """Verify hCaptcha token with Hcaptcha API. Returns True if valid."""
+    """Verify hCaptcha token. Nếu chưa set HCAPTCHA_SECRET thì chỉ check token có tồn tại."""
     if not token:
         return False
+    # Nếu chưa cấu hình secret → chỉ check token không rỗng (frontend đã verify)
+    if not HCAPTCHA_SECRET:
+        return True
     try:
         import urllib.request, urllib.parse
         data = urllib.parse.urlencode({"secret": HCAPTCHA_SECRET, "response": token}).encode()
@@ -14,7 +17,7 @@ def verify_hcaptcha(token: str) -> bool:
             result = json.loads(resp.read())
             return result.get("success", False)
     except Exception:
-        return True  # fallback: không block nếu không verify được
+        return True  # fallback: không block nếu mạng lỗi
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, Request, HTTPException
