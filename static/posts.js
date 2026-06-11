@@ -384,6 +384,11 @@ async function refreshViewPost(){
           : `<span style="font-weight:700">${c.author}</span>`;
         const avatarBg = isAdminCmt ? 'linear-gradient(135deg,#ffd740,#ff9800)' : 'linear-gradient(135deg,#4f9eff,#7c4dff)';
         const avatarContent = isAdminCmt ? '👑' : c.author[0].toUpperCase();
+        const commentAvatarHtml = isAdminCmt
+          ? `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>`
+          : (c.author_avatar || _avatarCache[c.author] || (() => { try{ return localStorage.getItem('zct_avatar_'+c.author)||''; }catch(e){ return ''; }})()
+              ? `<img src="${c.author_avatar || _avatarCache[c.author] || localStorage.getItem('zct_avatar_'+c.author)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`
+              : `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avatar-for="${c.author}">${avatarContent}</div>`);
         let mediaHtml = '';
         if(c.media&&c.media.length) c.media.forEach(m=>{
           if(m.type==='image') mediaHtml+=`<img src="${m.data}" style="max-width:200px;max-height:150px;border-radius:10px;margin-top:6px;cursor:pointer;display:block" onclick="openLightbox(this.src)">`;
@@ -393,7 +398,7 @@ async function refreshViewPost(){
         const adminDel = IS_ADMIN ? `<button onclick="adminDeleteComment('${post.id}','${c.id}')" style="background:none;border:none;cursor:pointer;color:#ff5050;font-size:11px;margin-left:8px">🗑</button>` : '';
         const highlight = isAdminCmt ? 'border:1px solid rgba(255,215,64,.3);background:rgba(255,215,64,.05)' : 'border:1px solid var(--border)';
         return `<div style="display:flex;gap:8px;align-items:flex-start" id="cmt-${c.id}">
-          <div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>
+          ${commentAvatarHtml}
           <div style="flex:1;min-width:0">
             <div style="background:var(--glass2);${highlight};border-radius:12px;padding:9px 12px">
               <div style="font-size:12px;margin-bottom:3px">${authorDisplay}${adminDel}</div>
@@ -408,6 +413,21 @@ async function refreshViewPost(){
 
   el.innerHTML = postHtml + '<div style="height:1px;background:var(--border);margin:4px 0"></div>' + commentsHtml;
   el.scrollTop = el.scrollHeight;
+  // Async update comment avatars
+  if(typeof _fetchAndCacheAvatar === 'function'){
+    el.querySelectorAll('[data-avatar-for]').forEach(async div=>{
+      const uname = div.getAttribute('data-avatar-for');
+      if(!uname) return;
+      const src = await _fetchAndCacheAvatar(uname);
+      if(src && div.parentNode){
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.cssText = 'width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)';
+        img.alt = '';
+        div.replaceWith(img);
+      }
+    });
+  }
 }
 
 function handleCommentMedia(input){
