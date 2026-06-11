@@ -107,26 +107,27 @@ LOGO_URL       = "https://i.imgur.com/1qYFul7.jpeg"
 
 import requests as _requests
 
-def _send_otp_email(to_email: str, subject: str, html: str) -> bool:
+def _send_otp_email(to_email: str, subject: str, html: str):
+    """Gửi email qua Brevo API, trả về (True, '') hoặc (False, error_msg)"""
     try:
-        r = _requests.post(
-            "https://api.brevo.com/v3/smtp/email",
-            json={
-                "sender": {"name": FROM_NAME, "email": FROM_EMAIL},
-                "to": [{"email": to_email}],
-                "subject": subject,
-                "htmlContent": html
-            },
-            headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json"},
-            timeout=15
-        )
+        payload = {
+            "sender": {"name": FROM_NAME, "email": FROM_EMAIL},
+            "to": [{"email": to_email}],
+            "subject": subject,
+            "htmlContent": html
+        }
+        headers = {
+            "api-key": BREVO_API_KEY,
+            "Content-Type": "application/json"
+        }
+        r = _requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers, timeout=15)
         if r.status_code not in (200, 201):
             print(f"[Brevo] error: {r.status_code} {r.text}")
-            return False
-        return True
+            return False, r.text
+        return True, ""
     except Exception as e:
         print(f"[Brevo] exception: {e}")
-        return False
+        return False, str(e)
 
 def build_otp_email(title: str, subtitle: str, otp: str, username: str = "", note: str = "") -> str:
     user_line = f"<div style='font-size:14px;color:rgba(255,255,255,.6);margin-bottom:20px'>Xin chào <b style=\"color:#4f9eff\">{username}</b> 👋</div>" if username else ""
@@ -386,10 +387,14 @@ async def register_send_otp(request: Request):
     otp = str(_r2.randint(100000, 999999))
     reg_key = f"reg:{email}"
     otp_store[reg_key] = {"otp": otp, "expires": time.time()+300, "username": username, "password": password, "email": email}
-    def _send():
-        _send_otp_email(email, "🔑 Xác minh OTP đăng ký — FB Dame Tool",
-            build_otp_email("XÁC MINH ĐĂNG KÝ", "Mã OTP để xác minh tài khoản của bạn:", otp, username, "Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này."))
-    threading.Thread(target=_send, daemon=True).start()
+    ok, err_msg = _send_otp_email(
+        email,
+        "🔑 Xác minh OTP đăng ký — FB Dame Tool",
+        build_otp_email("XÁC MINH ĐĂNG KÝ", "Mã OTP để xác minh tài khoản của bạn:", otp, username, "Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.")
+    )
+    if not ok:
+        otp_store.pop(reg_key, None)
+        raise HTTPException(500, f"Không gửi được email: {err_msg}")
     return JSONResponse({"ok": True, "message": "Mã OTP đã gửi về Gmail của bạn"})
 
 @app.post("/api/register")
@@ -452,10 +457,14 @@ async def login_send_otp(request: Request):
     otp = str(_r2.randint(100000, 999999))
     login_key = f"login:{username}"
     otp_store[login_key] = {"otp": otp, "expires": time.time()+300, "username": username}
-    def _send():
-        _send_otp_email(email, "🔐 Xác minh đăng nhập — FB Dame Tool",
-            build_otp_email("XÁC MINH ĐĂNG NHẬP", "Mã OTP xác minh đăng nhập của bạn:", otp, username, "Nếu bạn không đăng nhập, hãy đổi mật khẩu ngay."))
-    threading.Thread(target=_send, daemon=True).start()
+    ok, err_msg = _send_otp_email(
+        email,
+        "🔐 Xác minh đăng nhập — FB Dame Tool",
+        build_otp_email("XÁC MINH ĐĂNG NHẬP", "Mã OTP xác minh đăng nhập của bạn:", otp, username, "Nếu bạn không đăng nhập, hãy đổi mật khẩu ngay.")
+    )
+    if not ok:
+        otp_store.pop(login_key, None)
+        raise HTTPException(500, f"Không gửi được email: {err_msg}")
     masked_local = email[:2] + "*" * max(len(email[:email.index("@")]) - 4, 0) + email[email.index("@")-2:email.index("@")] if len(email[:email.index("@")]) > 4 else email[0] + "*" * (email.index("@")-1)
     masked = masked_local + email[email.index("@"):]
     return JSONResponse({"ok": True, "skip_otp": False, "email_hint": masked})
@@ -561,11 +570,15 @@ async def forgot_password(request:Request):
     import random as _r2
     otp = str(_r2.randint(100000,999999))
     otp_store[email] = {"otp":otp,"expires":time.time()+300,"username":user}
-    def _send():
-        _send_otp_email(email, "🔐 Đặt lại mật khẩu — FB Dame Tool",
-            build_otp_email("ĐẶT LẠI MẬT KHẨU", "Mã OTP để đặt lại mật khẩu của bạn:", otp, user, "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này."))
-    threading.Thread(target=_send, daemon=True).start()
-    return JSONResponse({"ok":True})
+    ok, err_msg = _send_otp_email(
+        email,
+        "🔐 Đặt lại mật khẩu — FB Dame Tool",
+        build_otp_email("ĐẶT LẠI MẬT KHẨU", "Mã OTP để đặt lại mật khẩu của bạn:", otp, user, "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.")
+    )
+    if not ok:
+        otp_store.pop(email, None)
+        raise HTTPException(500, f"Không gửi được email: {err_msg}")
+    return JSONResponse({"ok": True})
 
 @app.post("/api/verify-otp")
 async def verify_otp(request:Request):
