@@ -109,8 +109,7 @@ function parseNotifColors(text) {
   };
   let html = text
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/
-/g,'<br>');
+    .replace(/\n/g,'<br>');
   // Color tags
   Object.entries(COLOR_MAP).forEach(([tag, color]) => {
     const re = new RegExp('\\['+tag+'\\]([\\s\\S]*?)\\[/'+tag+'\\]','gi');
