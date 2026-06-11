@@ -25,18 +25,23 @@ async function svLoadSlotList(){
     const used = d.used_slots || 0;
     const total = d.total_slots || 0;
     el.innerHTML = slots.map((s,i) => {
-      let expText = '⏰ Không giới hạn';
-      let expColor = 'var(--green)';
-      // Nếu slot chưa có expires_at nhưng có duration_minutes → hiển thị thời gian tính từ lúc chạy
-      if(!s.expires_at && s.duration_minutes){
-        const dm = s.duration_minutes;
-        if(dm >= 60){
-          const hh = Math.floor(dm/60), mm2 = dm%60;
-          expText = `⏳ ${hh}g${mm2>0?' '+mm2+'p':''} (tính từ lúc chạy)`;
-        } else {
-          expText = `⏳ ${dm} phút (tính từ lúc chạy)`;
+      let expText = '⏰ Chưa kích hoạt';
+      let expColor = 'var(--muted)';
+      // Slot chưa Start → expires_at = null, hiển thị thời gian tính từ lúc chạy
+      if(!s.expires_at){
+        if(s.duration_minutes){
+          const dm = s.duration_minutes;
+          if(dm >= 60){
+            const hh2 = Math.floor(dm/60), mm2 = dm%60;
+            expText = `⏳ ${hh2}g${mm2>0?' '+mm2+'p':''} (tính từ lúc chạy)`;
+          } else {
+            expText = `⏳ ${dm} phút (tính từ lúc chạy)`;
+          }
+          expColor = 'var(--yellow)';
+        } else if(s.duration_days){
+          expText = `⏳ ${s.duration_days} ngày (tính từ lúc chạy)`;
+          expColor = 'var(--yellow)';
         }
-        expColor = 'var(--yellow)';
       }
       if(s.expires_at){
         try{
