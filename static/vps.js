@@ -227,13 +227,33 @@ async function openMyVps(){
     }
     list.innerHTML='';
     if(window._vpsTabTimer){clearInterval(window._vpsTabTimer);window._vpsTabTimer=null;}
-    var _vpsTabStarts={};
-    var now=new Date();
     vps.forEach(function(v){
       var expHtml;
       if(!v.expires_at){
-        _vpsTabStarts[v.id]=Date.now();
-        expHtml='<div id="vps-elapsed-'+v.id+'" style="font-size:11px;color:var(--cyan);margin-top:8px">🕐 Tab đang tính: 0p 0s kể từ khi bắt đầu chạy tab</div>';
+        var durLabel;
+        if(v.duration_minutes&&v.duration_minutes<60){
+          durLabel=v.duration_minutes+' phút';
+        } else if(v.duration_minutes&&v.duration_minutes>=60){
+          var dh=Math.floor(v.duration_minutes/60),dm=v.duration_minutes%60;
+          durLabel=dh+'g'+(dm>0?' '+dm+'p':'');
+        } else if(v.duration_days&&v.duration_days===7){
+          durLabel='1 tuần';
+        } else if(v.duration_days&&v.duration_days===14){
+          durLabel='2 tuần';
+        } else if(v.duration_days&&v.duration_days===30){
+          durLabel='1 tháng';
+        } else if(v.duration_days&&v.duration_days===90){
+          durLabel='3 tháng';
+        } else if(v.duration_days&&v.duration_days===180){
+          durLabel='6 tháng';
+        } else if(v.duration_days&&v.duration_days===365){
+          durLabel='1 năm';
+        } else if(v.duration_days){
+          durLabel=v.duration_days+' ngày';
+        } else {
+          durLabel='Không giới hạn';
+        }
+        expHtml='<div style="font-size:11px;color:var(--cyan);margin-top:8px">⏳ '+durLabel+' (tính từ lúc chạy)</div>';
       } else {
         expHtml='<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ Hết hạn chưa xác định</div>';
         try{
@@ -259,20 +279,6 @@ async function openMyVps(){
         +'<div style="font-size:11px;color:var(--muted);margin-top:4px">📅 Mua: '+v.created+'</div>';
       list.appendChild(card);
     });
-    // Start elapsed timer for unlimited vps
-    if(Object.keys(_vpsTabStarts).length>0){
-      window._vpsTabTimer=setInterval(function(){
-        Object.keys(_vpsTabStarts).forEach(function(vid){
-          var el=document.getElementById('vps-elapsed-'+vid);
-          if(!el){clearInterval(window._vpsTabTimer);window._vpsTabTimer=null;return;}
-          var elapsed=Math.floor((Date.now()-_vpsTabStarts[vid])/1000);
-          var em=Math.floor(elapsed/60),es=elapsed%60;
-          var eh=Math.floor(em/60);em=em%60;
-          var txt=eh>0?(eh+'g '+em+'p '+es+'s'):(em>0?(em+'p '+es+'s'):(es+'s'));
-          el.textContent='🕐 Tab đang tính: '+txt+' kể từ khi bắt đầu chạy tab';
-        });
-      },1000);
-    }
   }catch(e3){list.innerHTML='<div style="color:var(--red);text-align:center">Lỗi tải dữ liệu</div>';}
 }
 
