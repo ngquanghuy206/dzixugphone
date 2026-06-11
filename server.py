@@ -100,7 +100,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.mount("/static", StaticFiles(directory="static"), name="static")
-BREVO_API_KEY  = os.environ.get("BREVO_API_KEY", "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")
+BREVO_API_KEY  = os.environ.get("BREVO_API_KEY", "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")
 FROM_EMAIL     = "viabydzi1@gmail.com"
 FROM_NAME      = "FB Dame Tool"
 LOGO_URL       = "https://i.imgur.com/1qYFul7.jpeg"
