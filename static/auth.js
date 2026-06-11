@@ -15,6 +15,14 @@ function switchAuthTab(tab){
   if(sl)sl.style.display=tab==='login'?'':'none';
   if(sr)sr.style.display=tab==='register'?'':'none';
   if(tab==='register'){selectedOptValue=null;}
+  // Lazy render hCaptcha widget khi tab hiện ra
+  if(tab==='login' && window.hcapEnsureLogin) setTimeout(hcapEnsureLogin, 50);
+  if(tab==='register' && window.hcapEnsureReg) setTimeout(hcapEnsureReg, 50);
+  // Reset widget đang dùng để tránh token cũ
+  if(window.hcaptcha){
+    if(tab==='login' && window._hcapLoginRendered && window._hcapLoginId!=null) hcaptcha.reset(window._hcapLoginId);
+    if(tab==='register' && window._hcapRegRendered && window._hcapRegId!=null) hcaptcha.reset(window._hcapRegId);
+  }
 }
 let _forgotEmail='',_forgotOtp='';
 function openForgotModal(){
@@ -101,8 +109,8 @@ async function doLoginSendOtp(resend){
   const btn=document.getElementById('login-btn');
   if(!u||!p){err.style.display='block';err.textContent='Vui lòng nhập đầy đủ';return;}
   // Lấy hcaptcha token
-  const capToken = window.hcaptcha ? hcaptcha.getResponse(window._hcapLoginId) : '';
-  if(!capToken){err.style.display='block';err.textContent='Vui lòng xác minh captcha';return;}
+  const capToken = (window.hcaptcha && window._hcapLoginId != null) ? hcaptcha.getResponse(window._hcapLoginId) : '';
+  if(!capToken){err.style.display='block';err.textContent='Vui lòng tích vào ô \'Tôi là con người\'';return;}
   if(btn){ btn.disabled=true; btn.textContent='⏳ Đang xử lý...'; }
   err.style.display='none';
   try{
@@ -203,8 +211,8 @@ async function doRegisterSendOtp(){
   if(u.length<6||p.length<6){err.style.display='block';err.textContent='Username & mật khẩu tối thiểu 6 ký tự';return;}
   if(!em.toLowerCase().endsWith('@gmail.com')){err.style.display='block';err.textContent='Chỉ chấp nhận @gmail.com';return;}
   // hCaptcha thay cho custom captcha cũ
-  const capToken = window.hcaptcha ? hcaptcha.getResponse(window._hcapRegId) : '';
-  if(!capToken){err.style.display='block';err.textContent='Vui lòng xác minh captcha';return;}
+  const capToken = (window.hcaptcha && window._hcapRegId != null) ? hcaptcha.getResponse(window._hcapRegId) : '';
+  if(!capToken){err.style.display='block';err.textContent='Vui lòng tích vào ô \'Tôi là con người\'';return;}
   btn.disabled=true;btn.textContent='⏳ Đang gửi OTP...';err.style.display='none';
   try{
     const r=await fetch('/api/register/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p,email:em,hcaptcha_token:capToken})});

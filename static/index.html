@@ -24,17 +24,40 @@
 <!-- hCaptcha -->
 <script src="https://js.hcaptcha.com/1/api.js?onload=hcaptchaOnLoad&render=explicit" async defer></script>
 <script>
-  window._hcapLoginId = null;
-  window._hcapRegId   = null;
+  window._hcapLoginId  = null;
+  window._hcapRegId    = null;
+  window._hcapReady    = false;
+  window._hcapLoginRendered = false;
+  window._hcapRegRendered   = false;
+
   window.hcaptchaOnLoad = function(){
-    window._hcapLoginId = hcaptcha.render('hcap-login', {
+    window._hcapReady = true;
+    // Render ngay widget nào đang visible
+    hcapEnsureLogin();
+  };
+
+  // Gọi mỗi khi tab login hiện ra
+  window.hcapEnsureLogin = function(){
+    if(!window._hcapReady || window._hcapLoginRendered) return;
+    var el = document.getElementById('hcap-login');
+    if(!el) return;
+    window._hcapLoginId = hcaptcha.render(el, {
       sitekey: '91fc5d1c-75a6-4564-abc4-43a63ee2a464',
       theme: 'dark'
     });
-    window._hcapRegId = hcaptcha.render('hcap-reg', {
+    window._hcapLoginRendered = true;
+  };
+
+  // Gọi mỗi khi tab register hiện ra
+  window.hcapEnsureReg = function(){
+    if(!window._hcapReady || window._hcapRegRendered) return;
+    var el = document.getElementById('hcap-reg');
+    if(!el) return;
+    window._hcapRegId = hcaptcha.render(el, {
       sitekey: '91fc5d1c-75a6-4564-abc4-43a63ee2a464',
       theme: 'dark'
     });
+    window._hcapRegRendered = true;
   };
 </script>
 <script>
