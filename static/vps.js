@@ -226,15 +226,16 @@ async function openMyVps(){
       return;
     }
     list.innerHTML='';
+    if(window._vpsTabTimer){clearInterval(window._vpsTabTimer);window._vpsTabTimer=null;}
+    var _vpsTabStarts={};
     var now=new Date();
     vps.forEach(function(v){
-      var durLabel='';
-      if(v.duration_minutes){durLabel=v.duration_minutes+' phút';}
-      else if(v.duration_days){durLabel=v.duration_days+' ngày';}
-      var expHtml=durLabel
-        ?'<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ '+durLabel+' (tính từ lúc chạy)</div>'
-        :'<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ Tính từ lúc chạy</div>';
-      if(v.expires_at){
+      var expHtml;
+      if(!v.expires_at){
+        _vpsTabStarts[v.id]=Date.now();
+        expHtml='<div id="vps-elapsed-'+v.id+'" style="font-size:11px;color:var(--cyan);margin-top:8px">🕐 Tab đang tính: 0p 0s kể từ khi bắt đầu chạy tab</div>';
+      } else {
+        expHtml='<div style="font-size:11px;color:var(--green);margin-top:8px">⏰ Hết hạn chưa xác định</div>';
         try{
           var p2=v.expires_at.split(' ');var dp=p2[0].split('/');var tp=p2[1].split(':');
           var expMs=new Date(+dp[2],+dp[1]-1,+dp[0],+tp[0],+tp[1],+tp[2]).getTime();
@@ -258,6 +259,20 @@ async function openMyVps(){
         +'<div style="font-size:11px;color:var(--muted);margin-top:4px">📅 Mua: '+v.created+'</div>';
       list.appendChild(card);
     });
+    // Start elapsed timer for unlimited vps
+    if(Object.keys(_vpsTabStarts).length>0){
+      window._vpsTabTimer=setInterval(function(){
+        Object.keys(_vpsTabStarts).forEach(function(vid){
+          var el=document.getElementById('vps-elapsed-'+vid);
+          if(!el){clearInterval(window._vpsTabTimer);window._vpsTabTimer=null;return;}
+          var elapsed=Math.floor((Date.now()-_vpsTabStarts[vid])/1000);
+          var em=Math.floor(elapsed/60),es=elapsed%60;
+          var eh=Math.floor(em/60);em=em%60;
+          var txt=eh>0?(eh+'g '+em+'p '+es+'s'):(em>0?(em+'p '+es+'s'):(es+'s'));
+          el.textContent='🕐 Tab đang tính: '+txt+' kể từ khi bắt đầu chạy tab';
+        });
+      },1000);
+    }
   }catch(e3){list.innerHTML='<div style="color:var(--red);text-align:center">Lỗi tải dữ liệu</div>';}
 }
 
@@ -323,7 +338,7 @@ async function loadHistTab(tab){
       }).join('');
     } else {
       list.innerHTML=data.slice(0,20).map(function(p){
-        return '<div style="padding:8px 10px;border-radius:8px;background:var(--glass2);margin-bottom:6px;font-size:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>'+p.plan_name+'</b><span style="color:var(--green);font-weight:800">'+fmtMoney(p.price)+'</span></div><div style="color:var(--muted);font-size:11px">'+p.qty+' máy · Hết hạn: '+(p.expires_at||'Không giới hạn')+' · '+(p.created||'')+'</div></div>';
+        return '<div style="padding:8px 10px;border-radius:8px;background:var(--glass2);margin-bottom:6px;font-size:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><b>'+p.plan_name+'</b><span style="color:var(--green);font-weight:800">'+fmtMoney(p.price)+'</span></div><div style="color:var(--muted);font-size:11px">'+p.qty+' máy · Hết hạn: '+(p.expires_at||'Tính theo tab')+' · '+(p.created||'')+'</div></div>';
       }).join('');
     }
   }catch{list.innerHTML='<div style="color:var(--red);font-size:12px">Lỗi tải dữ liệu</div>';}

@@ -314,7 +314,7 @@ async function loadDepositHistoryStandalone(){
       const statusText=d.status==='approved'?'✅ Thành công':d.status==='rejected'?'❌ Từ chối':'⏳ Chờ duyệt';
       return `<div style="background:var(--glass2);border-radius:12px;padding:12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <b style="font-size:14px;color:var(--green)">${(d.amount||0).toLocaleString()}đ</b>
+          <b style="font-size:14px;color:var(--green)">${`${(d.amount||0).toLocaleString()}đ`}</b>
           <span style="font-size:12px;color:${statusColor}">${statusText}</span>
         </div>
         <div style="font-size:11px;color:var(--muted)">${d.order_id} · ${d.created}</div>
@@ -332,13 +332,13 @@ async function loadPurchaseHistoryStandalone(){
     if(!data.length){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px">📭 Chưa có lịch sử mua</div>';return;}
     list.innerHTML=data.map(d=>`<div style="background:var(--glass2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <b style="font-size:13px">${d.id||'#dzixmode?????'}</b>
+        <b style="font-size:13px" id="pur-id-disp">${d.id||'#dzixmode?????'}</b>
         <span style="font-size:12px;color:var(--cyan)">${d.qty} máy ảo</span>
       </div>
       <div style="font-size:12px;margin-bottom:4px">${d.plan_name}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
         <span>${(d.price||0).toLocaleString()}đ</span>
-        <span>Hết hạn: ${d.expires_at||'Không giới hạn'}</span>
+        <span>Hết hạn: ${d.expires_at||\'Tính theo tab\'}</span>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:2px">${d.created}</div>
     </div>`).join('');
