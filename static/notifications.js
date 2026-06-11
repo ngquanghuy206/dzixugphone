@@ -18,17 +18,27 @@ function updateBellBadge() {
   const badge = document.getElementById('bell-badge');
   const cnt = (_notifData.sub||[]).length;
   if(badge) {
-    badge.style.display = cnt > 0 ? 'flex' : 'none';
-    badge.textContent = cnt > 9 ? '9+' : cnt;
+    if(cnt > 0) {
+      badge.style.cssText += ';display:flex!important;align-items:center;justify-content:center';
+      badge.textContent = cnt > 9 ? '9+' : cnt;
+    } else {
+      badge.style.display = 'none';
+    }
   }
 }
 
 // ── BELL DROPDOWN ─────────────────────────────────────────
-function toggleBellDrop() {
+async function toggleBellDrop() {
   const drop = document.getElementById('bell-dropdown');
   if(!drop) return;
   _bellDropOpen = !_bellDropOpen;
   if(_bellDropOpen) {
+    // Load fresh data
+    try {
+      const r = await fetch('/api/notifications',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+      _notifData = await r.json();
+      updateBellBadge();
+    } catch(e){}
     renderBellDrop();
     drop.style.display = '';
     requestAnimationFrame(()=>{ drop.style.opacity='1'; drop.style.transform='translateY(0)'; });
@@ -130,13 +140,19 @@ function openMainNotifModal() {
 }
 
 // ── ADMIN: NOTIFICATIONS ──────────────────────────────────
-function openAdminNotifModal() {
+async function openAdminNotifModal() {
+  openModal('admin-notif-modal');
+  // Load fresh data trước khi render
+  try {
+    const r = await fetch('/api/notifications',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+    _notifData = await r.json();
+  } catch(e){}
   const el = document.getElementById('anotif-main-text');
   if(el && _notifData.main) el.value = _notifData.main.text||'';
   const imgEl = document.getElementById('anotif-main-img');
   if(imgEl && _notifData.main) imgEl.value = _notifData.main.image||'';
   renderAdminSubList();
-  openModal('admin-notif-modal');
+  updateBellBadge();
 }
 
 async function adminSaveMainNotif() {
