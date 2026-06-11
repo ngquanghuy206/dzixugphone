@@ -32,23 +32,31 @@ async function _fetchAndCacheAvatar(username){
   }catch(e){ _avatarCache[username]=''; return ''; }
 }
 
+const ADMIN_USERNAME = 'knammelbel206';
+
 function _getAdminAvatarHtml(size){
   size = size||32;
-  // Try localStorage cache first (sync)
+  // Lấy đúng avatar của admin theo username, không scan lung tung localStorage
   try{
-    const keys=Object.keys(localStorage);
-    for(const k of keys){
-      if(k.startsWith('zct_avatar_')){
-        const src=localStorage.getItem(k);
-        if(src){
-          _avatarCache[k.replace('zct_avatar_','')] = src;
-          return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
-        }
-      }
+    const src = _avatarCache[ADMIN_USERNAME] || localStorage.getItem('zct_avatar_'+ADMIN_USERNAME) || '';
+    if(src){
+      if(_avatarCache[ADMIN_USERNAME]===undefined) _avatarCache[ADMIN_USERNAME]=src;
+      return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
     }
   }catch(e){}
-  // Fallback emoji — async load sẽ refresh khi reload
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.5)}px;flex-shrink:0">👑</div>`;
+  // Fallback emoji 👑
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.5)}px;flex-shrink:0" data-avatar-admin="1">👑</div>`;
+}
+
+// Async: fetch avatar admin từ server rồi update DOM
+async function _prefetchAdminAvatar(){
+  if(_avatarCache[ADMIN_USERNAME]) return; // đã có
+  try{
+    const src = localStorage.getItem('zct_avatar_'+ADMIN_USERNAME) || '';
+    if(src){ _avatarCache[ADMIN_USERNAME]=src; return; }
+  }catch(e){}
+  // Fetch từ API
+  await _fetchAndCacheAvatar(ADMIN_USERNAME);
 }
 
 function _getUserAvatarHtml(username, size){
@@ -106,6 +114,7 @@ function openChatThreadPage(){
   if(page){ page.style.display='flex'; }
   _chatOpen=true;
   _chatLastId=null; _chatMessages=[];
+  _prefetchAdminAvatar(); // load avatar admin trước
   _loadChatMessages(true);
   _startChatPoll();
 }
@@ -253,6 +262,13 @@ function _renderChatMessages(){
       });
     });
   }
+  // Async update avatar admin
+  _fetchAndCacheAvatar(ADMIN_USERNAME).then(src=>{
+    if(!src) return;
+    el.querySelectorAll('[data-avatar-admin]').forEach(div=>{
+      div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
+    });
+  });
 }
 
 function chatAttachImage(input){
@@ -580,6 +596,13 @@ async function _loadAdminThreadMessagesNew(){
         });
       });
     }
+    // Async update admin avatar (hiện đúng ảnh admin thay vì 👑)
+    _fetchAndCacheAvatar(ADMIN_USERNAME).then(src=>{
+      if(!src) return;
+      el.querySelectorAll('[data-avatar-admin]').forEach(div=>{
+        div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
+      });
+    });
   }catch{}
 }
 
