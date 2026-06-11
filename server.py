@@ -515,10 +515,10 @@ async def api_me(request:Request):
     user = users.get(username,{})
     deposits = load_deposits()
     purchases = load_purchases()
-    total_deposited = sum(d.get("amount",0) for d in deposits if d.get("username")==username and d.get("status")=="approved")
-    total_spent = sum(p.get("price",0) for p in purchases if p.get("username")==username)
+    total_deposited = sum(int(d.get("amount",0) or 0) for d in deposits if d.get("username")==username and d.get("status")=="approved")
+    total_spent = sum(int(p.get("price",0) or 0) for p in purchases if p.get("username")==username)
     return JSONResponse({"username":username,"is_admin":False,
-        "balance":user.get("balance",0),"email":user.get("email",""),"created":user.get("created",""),
+        "balance":int(user.get("balance",0) or 0),"email":user.get("email",""),"created":user.get("created",""),
         "avatar":user.get("avatar",""),
         "total_deposited":total_deposited,"total_spent":total_spent})
 
