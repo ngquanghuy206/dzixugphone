@@ -338,7 +338,7 @@ async function loadPurchaseHistoryStandalone(){
       <div style="font-size:12px;margin-bottom:4px">${d.plan_name}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
         <span>${(d.price||0).toLocaleString()}đ</span>
-        <span>Hết hạn: ${d.expires_at||\'Tính theo tab\'}</span>
+        <span>Hết hạn: ${d.expires_at||'Tính theo tab'}</span>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:2px">${d.created}</div>
     </div>`).join('');
