@@ -172,7 +172,8 @@ async function adminSaveMainNotif() {
     });
     const d = await r.json();
     if(d.ok){ showToast('✅ Đã cập nhật thông báo!','#00c882'); await loadNotifications(); }
-  } catch(e){ showToast('❌ Lỗi','#ff5050'); }
+    else { showToast('❌ Lỗi: ' + (d.detail || 'Không lưu được'), '#ff5050'); }
+  } catch(e){ showToast('❌ Lỗi kết nối','#ff5050'); }
   finally{ btn.disabled=false; btn.textContent='💾 Lưu thông báo'; }
 }
 
@@ -197,8 +198,8 @@ async function adminSendSubNotif() {
         el.style.animation='bellRing 0.5s ease';
         setTimeout(()=>{ el.style.animation=''; }, 600);
       });
-    }
-  } catch(e){ showToast('❌ Lỗi','#ff5050'); }
+    } else { showToast('❌ Lỗi: ' + (d.detail || 'Không gửi được'), '#ff5050'); }
+  } catch(e){ showToast('❌ Lỗi kết nối','#ff5050'); }
   finally{ btn.disabled=false; btn.textContent='🔔 Gửi thông báo'; }
 }
 
