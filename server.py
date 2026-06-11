@@ -1628,6 +1628,14 @@ async def get_posts(request: Request):
     posts = load_posts()
     approved = [p for p in posts if p.get("status") == "approved"]
     chunk = approved[page*per:(page+1)*per]
+    # Enrich author_avatar từ users DB (lấy avatar mới nhất)
+    users = load_users()
+    for p in chunk:
+        author = p.get("author", "")
+        if author:
+            user_data = users.get(author, {})
+            if not p.get("author_avatar") and user_data.get("avatar"):
+                p["author_avatar"] = user_data["avatar"]
     return JSONResponse({"ok": True, "posts": chunk, "total": len(approved), "has_more": len(approved) > (page+1)*per})
 
 # Admin xem bài chờ duyệt
@@ -1704,9 +1712,11 @@ async def add_comment(post_id: str, request: Request):
     media = data.get("media") or []
     if not text and not media: raise HTTPException(400, "Bình luận trống")
     posts = load_posts()
+    users = load_users()
     comment = {
         "id": str(uuid.uuid4())[:8],
         "author": username,
+        "author_avatar": users.get(username, {}).get("avatar", ""),
         "text": text,
         "media": media[:3],
         "is_admin": is_admin(username),
