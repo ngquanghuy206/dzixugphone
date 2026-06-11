@@ -359,8 +359,15 @@ async def tg(text:str, inline_keyboard=None):
 async def root(): return FileResponse("static/index.html")
 
 @app.get("/api/vps-plans")
-async def api_vps_plans():
-    return JSONResponse(DAME_SLOT_PLANS)
+async def api_vps_plans(request: Request):
+    plans = list(DAME_SLOT_PLANS)
+    username = get_session_user(get_token(request))
+    if username:
+        users = load_users()
+        free_used = users.get(username, {}).get("free_slot_used", False)
+        if free_used:
+            plans = [p for p in plans if not p.get("trial")]
+    return JSONResponse(plans)
 
 # ════════════════════════════════════════════════════════
 # AUTH  (bỏ register - chỉ giữ login)
@@ -486,7 +493,8 @@ async def login(request: Request):
     user  = users.get(username)
     if not user: raise HTTPException(401, "Tài khoản không tồn tại")
     balance = user.get("balance", 0)
-    return JSONResponse({"ok": True, "token": create_session(username), "username": username, "is_admin": False, "balance": balance})
+    free_slot_used = user.get("free_slot_used", True)
+    return JSONResponse({"ok": True, "token": create_session(username), "username": username, "is_admin": False, "balance": balance, "free_slot_used": free_slot_used})
 
 @app.post("/api/logout")
 async def logout(request:Request):
