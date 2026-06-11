@@ -27,6 +27,17 @@ async function svLoadSlotList(){
     el.innerHTML = slots.map((s,i) => {
       let expText = '⏰ Không giới hạn';
       let expColor = 'var(--green)';
+      // Nếu slot chưa có expires_at nhưng có duration_minutes → hiển thị thời gian tính từ lúc chạy
+      if(!s.expires_at && s.duration_minutes){
+        const dm = s.duration_minutes;
+        if(dm >= 60){
+          const hh = Math.floor(dm/60), mm2 = dm%60;
+          expText = `⏳ ${hh}g${mm2>0?' '+mm2+'p':''} (tính từ lúc chạy)`;
+        } else {
+          expText = `⏳ ${dm} phút (tính từ lúc chạy)`;
+        }
+        expColor = 'var(--yellow)';
+      }
       if(s.expires_at){
         try{
           const p2=s.expires_at.split(' ');const dp=p2[0].split('/');const tp=p2[1].split(':');
