@@ -1,17 +1,9 @@
 // ═══════════════════════════════════════════════════════
-//  STATE
+//  STATE (globals declared in globals.js)
 // ═══════════════════════════════════════════════════════
-let rememberMe    = localStorage.getItem('zct_remember') === '1';
-let SESSION_TOKEN = rememberMe ? (localStorage.getItem('zct_token')||'') : (sessionStorage.getItem('zct_token')||'');
-let CURRENT_USER  = rememberMe ? (localStorage.getItem('zct_user')||'')  : (sessionStorage.getItem('zct_user')||'');
-let IS_ADMIN      = rememberMe ? localStorage.getItem('zct_admin')==='1' : sessionStorage.getItem('zct_admin')==='1';
-if(SESSION_TOKEN){document.cookie=`session_token=${SESSION_TOKEN};path=/;SameSite=Lax;max-age=${rememberMe?60*60*24*30:60*60*8}`;}
-let currentData = null, viewingHistItem = null;
-
-// Dame state
-let dameRunning = false, damePaused = false, dameStop = false;
-let dameTotal = 0, dameLoops = 0, dameStartTime = null, dameTimer = null;
-let dameWin = null; // cửa sổ FB mở
+// NOTE: SESSION_TOKEN, CURRENT_USER, IS_ADMIN, rememberMe, currentData,
+// dameRunning, damePaused, dameStop, dameTotal, dameLoops, dameStartTime,
+// dameTimer, dameWin are declared in globals.js — do NOT redeclare here.
 
 // ═══════════════════════════════════════════════════════
 //  CAPTCHA ENGINE
@@ -810,10 +802,8 @@ function downloadHist(idx){
 // ═══════════════════════════════════════════════════════
 //  BALANCE DISPLAY
 // ═══════════════════════════════════════════════════════
-let CURRENT_BALANCE = 0;
-function fmtMoney(n){
-  return Number(n||0).toLocaleString('vi-VN') + ' VND';
-}
+// CURRENT_BALANCE & fmtMoney are declared in balance.js (loads after app.js)
+// updateBalanceDisplay here adds IS_ADMIN guard missing from balance.js version
 function updateBalanceDisplay(bal){
   if(IS_ADMIN){ // admin always shows ∞
     const sb=document.getElementById('sb-balance-el');
@@ -1365,7 +1355,7 @@ async function openAccountInfo(){
     if(depEl) depEl.textContent=fmtMoney(d.total_deposited||0);
     const spentEl=document.getElementById('ai-total-spent');
     if(spentEl) spentEl.textContent=fmtMoney(d.total_spent||0);
-  }catch{}
+  }catch(e){console.error('[openAccountInfo /api/me error]',e);}
   // Load slot count
   try{
     const sr=await fetch('/api/slots/count',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
@@ -1375,7 +1365,7 @@ async function openAccountInfo(){
       const el=document.getElementById('ai-slots');if(el)el.textContent=slotsTxt;
       const badge=document.getElementById('ai-slot-badge');if(badge)badge.textContent='📱 '+slotsTxt;
     }
-  }catch{}
+  }catch(e){console.error('[openAccountInfo slots/count error]',e);}
   document.getElementById('ai-oldpw').value='';document.getElementById('ai-newpw').value='';document.getElementById('ai-newpw2').value='';
   document.getElementById('ai-pw-err').textContent='';
 }

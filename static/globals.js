@@ -7,6 +7,7 @@ let CURRENT_USER  = rememberMe ? (localStorage.getItem('zct_user')||'')  : (sess
 let IS_ADMIN      = rememberMe ? localStorage.getItem('zct_admin')==='1' : sessionStorage.getItem('zct_admin')==='1';
 if(SESSION_TOKEN){document.cookie=`session_token=${SESSION_TOKEN};path=/;SameSite=Lax;max-age=${rememberMe?60*60*24*30:60*60*8}`;}
 let currentData = null, viewingHistItem = null;
+let CURRENT_BALANCE = 0; // balance display state
 
 // Dame state
 let dameRunning = false, damePaused = false, dameStop = false;
