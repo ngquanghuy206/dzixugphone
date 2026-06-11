@@ -339,15 +339,15 @@ async function loadPurchaseHistoryStandalone(){
     if(!data.length){list.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px">📭 Chưa có lịch sử mua</div>';return;}
     list.innerHTML=data.map(d=>`<div style="background:var(--glass2);border-radius:12px;padding:12px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <b style="font-size:13px" id="pur-id-disp">\${d.id||'#dzixmode?????'}</b>
-        <span style="font-size:12px;color:var(--cyan)">\${d.qty} máy ảo</span>
+        <b style="font-size:13px">${d.id||'#dzixmode?????'}</b>
+        <span style="font-size:12px;color:var(--cyan)">${d.qty} máy ảo</span>
       </div>
-      <div style="font-size:12px;margin-bottom:4px">\${d.plan_name}</div>
+      <div style="font-size:12px;margin-bottom:4px">${d.plan_name}</div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
-        <span>\${(d.price||0).toLocaleString()}đ</span>
-        <span>Hết hạn: \${d.expires_at}</span>
+        <span>${(d.price||0).toLocaleString()}đ</span>
+        <span>Hết hạn: ${d.expires_at||'Không giới hạn'}</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px">\${d.created}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${d.created}</div>
     </div>`).join('');
   }catch(ex){list.innerHTML='<div style="color:var(--red);text-align:center">Lỗi tải dữ liệu</div>';}
 }
@@ -1098,7 +1098,7 @@ async function openVpsShop(){
     if(sr.ok){const sd=await sr.json();const slEl=document.getElementById('vps-shop-slots');if(slEl)slEl.textContent=sd.total_slots+' máy ảo';}
   }catch{}
   if(!_vpsPlans.length){
-    try{const r=await fetch('/api/vps-plans');if(r.ok)_vpsPlans=await r.json();}catch{}
+    try{const r=await fetch('/api/vps-plans',{headers:SESSION_TOKEN?{'Authorization':'Bearer '+SESSION_TOKEN}:{}});if(r.ok)_vpsPlans=await r.json();}catch{}
   }
   openModal('vps-shop-modal');
   setTimeout(function(){

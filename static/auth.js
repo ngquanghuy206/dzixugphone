@@ -176,6 +176,10 @@ async function doLoginVerifyOtp(){
     const maxAge=rememberMe?60*60*24*30:60*60*8;
     document.cookie=`session_token=${SESSION_TOKEN};path=/;SameSite=Lax;max-age=${maxAge}`;
     playSfx('success'); showApp();
+    // Hiện popup nhận free slot nếu chưa nhận (chỉ 1 lần duy nhất)
+    if(!IS_ADMIN && d.free_slot_used === false){
+      setTimeout(function(){ if(window.showFreeSlotPopup) showFreeSlotPopup(CURRENT_USER); }, 800);
+    }
   }catch(e){
     err.style.display='block'; err.textContent=e.message; playSfx('error');
   }
@@ -240,7 +244,10 @@ async function doRegisterVerify(){
     const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p,email:em,otp})});
     const d=await r.json();if(!r.ok)throw new Error(d.detail||'Lỗi đăng ký');
     _stopRegOtpTimer();
-    showToast('✅ Đăng ký thành công!','#00e676');switchAuthTab('login');
+    showToast('✅ Đăng ký thành công! Hãy đăng nhập để nhận slot free 30 phút.','#00e676');
+    setTimeout(function(){
+      switchAuthTab('login');
+    }, 800);
   }catch(e){err.style.display='block';err.textContent=e.message;}
   finally{btn.disabled=false;btn.textContent='✅ Xác minh & Đăng ký';}
 }
@@ -439,3 +446,33 @@ function doLogout(){
 
 
 
+
+// ═══════════════════════════════════════════════════════
+//  FREE SLOT POPUP - HIỆN SAU KHI ĐĂNG NHẬP LẦN ĐẦU
+// ═══════════════════════════════════════════════════════
+function showFreeSlotPopup(username) {
+  var overlay = document.createElement('div');
+  overlay.id = 'free-slot-popup-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:linear-gradient(135deg,#0d1a35,#0a1428);border:1px solid #1a3a6a;border-radius:24px;padding:32px 24px;max-width:360px;width:100%;text-align:center;animation:fadeInUp .4s ease">
+      <div style="font-size:52px;margin-bottom:12px">🎁</div>
+      <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:8px">Chào mừng <span style="color:#5b9eff">${username}</span>!</div>
+      <div style="font-size:14px;color:#7a90b0;margin-bottom:20px;line-height:1.6">Tài khoản mới được tặng miễn phí<br><b style="color:#00e676">1 máy chủ · 30 phút</b> để trải nghiệm</div>
+      <div style="background:#080f1f;border:1px solid #1a3a6a;border-radius:14px;padding:16px;margin-bottom:20px">
+        <div style="font-size:13px;color:#a0b4d0;margin-bottom:8px">🎁 Phần thưởng của bạn</div>
+        <div style="font-size:18px;font-weight:800;color:#00e676">1 Máy chủ miễn phí · 30 phút</div>
+        <div style="font-size:11px;color:#4a6080;margin-top:4px">Slot sẽ kích hoạt khi bạn bấm Start dame</div>
+        <div style="font-size:11px;color:#e57373;margin-top:6px;font-weight:700">⚠️ Mỗi tài khoản chỉ nhận được 1 lần</div>
+      </div>
+      <button onclick="closeFreeSlotPopup()" style="width:100%;padding:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-bottom:10px">🎉 Tuyệt vời, dùng ngay!</button>
+      <div style="font-size:11px;color:#4a6080">Slot đã được thêm vào tài khoản của bạn</div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeFreeSlotPopup() {
+  var overlay = document.getElementById('free-slot-popup-overlay');
+  if(overlay) overlay.remove();
+  showToast('🎁 Slot free 30 phút đã sẵn sàng! Vào Shop máy ảo để xem.', '#00e676');
+}
