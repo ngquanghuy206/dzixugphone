@@ -291,7 +291,19 @@ function showApp(){
   if(titleEl) titleEl.textContent=(IS_ADMIN?'👑 Chào Admin ':'👋 Chào ') + CURRENT_USER + '!';
   startClock();loadHistory();
   if(typeof loadNotifications==='function') loadNotifications();
+  if(typeof loadHotDeals==='function') setTimeout(loadHotDeals, 300);
   if(!IS_ADMIN) refreshBalance();
+  // Auto-show main notification popup nếu chưa snooze
+  setTimeout(async ()=>{
+    try {
+      const snoozeUntil = parseInt(localStorage.getItem('notif_snooze_until')||'0',10);
+      if(Date.now() < snoozeUntil) return;
+      const rn = await fetch('/api/notifications',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+      const nd = await rn.json();
+      const txt = (nd.main && nd.main.text||'').trim();
+      if(txt && typeof openMainNotifModal==='function') openMainNotifModal();
+    } catch(e){}
+  }, 800);
   // Poll unread chat count for admin badge
   if(IS_ADMIN){
     loadAdminChatThreads();
