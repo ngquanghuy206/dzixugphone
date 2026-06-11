@@ -241,7 +241,7 @@
       <span class="sb-item-icon" style="background:rgba(255,100,0,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff6d00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
       🔥 Tạo Hot Deal
     </div>
-    <div class="sb-item" id="sb-admin-notif-item" onclick="closeMenu();openAdminNotifModal()" style="background:linear-gradient(135deg,rgba(255,152,0,.06),transparent);border-left:2px solid rgba(255,152,0,.4)">
+    <div class="sb-item" id="sb-admin-notif-item" onclick="event.stopPropagation();closeMenu();setTimeout(openAdminNotifModal,150)" style="background:linear-gradient(135deg,rgba(255,152,0,.06),transparent);border-left:2px solid rgba(255,152,0,.4)">
       <span class="sb-item-icon" style="background:rgba(255,152,0,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#ff9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
       📢 Tạo thông báo
     </div>
@@ -1428,22 +1428,22 @@
   </div>
 </div>
 
-<script src="/static/globals.js?v=21"></script>
-<script src="/static/app.js?v=21"></script>
-<script src="/static/captcha.js?v=21"></script>
-<script src="/static/auth.js?v=21"></script>
-<script src="/static/dame.js?v=21"></script>
-<script src="/static/history.js?v=21"></script>
-<script src="/static/balance.js?v=21"></script>
-<script src="/static/admin.js?v=21"></script>
-<script src="/static/deposit.js?v=21"></script>
-<script src="/static/vps.js?v=21"></script>
-<script src="/static/utils.js?v=21"></script>
-<script src="/static/wizard.js?v=21"></script>
-<script src="/static/server_list.js?v=21"></script>
-<script src="/static/server_detail.js?v=21"></script>
-<script src="/static/init.js?v=21"></script>
-<script src="/static/screenshot.js?v=21"></script>
+<script src="/static/globals.js?v=22"></script>
+<script src="/static/app.js?v=22"></script>
+<script src="/static/captcha.js?v=22"></script>
+<script src="/static/auth.js?v=22"></script>
+<script src="/static/dame.js?v=22"></script>
+<script src="/static/history.js?v=22"></script>
+<script src="/static/balance.js?v=22"></script>
+<script src="/static/admin.js?v=22"></script>
+<script src="/static/deposit.js?v=22"></script>
+<script src="/static/vps.js?v=22"></script>
+<script src="/static/utils.js?v=22"></script>
+<script src="/static/wizard.js?v=22"></script>
+<script src="/static/server_list.js?v=22"></script>
+<script src="/static/server_detail.js?v=22"></script>
+<script src="/static/init.js?v=22"></script>
+<script src="/static/screenshot.js?v=22"></script>
 
 <!-- DEPOSIT HISTORY STANDALONE MODAL -->
 <div class="modal-overlay" id="deposit-hist-standalone-modal" onclick="if(event.target===this)closeModal('deposit-hist-standalone-modal')">
@@ -1561,7 +1561,7 @@
   </div>
 </div>
 
-<script src="/static/chat.js?v=21"></script>
+<script src="/static/chat.js?v=22"></script>
 <!-- ══════════════════════════════════════════════════════
      POSTS FEED MODAL
 ══════════════════════════════════════════════════════ -->
@@ -1654,9 +1654,9 @@
   </div>
 </div>
 
-<script src="/static/posts.js?v=21"></script>
-<script src="/static/hotdeal.js?v=21"></script>
-<script src="/static/notifications.js?v=21"></script>
+<script src="/static/posts.js?v=22"></script>
+<script src="/static/hotdeal.js?v=22"></script>
+<script src="/static/notifications.js?v=22"></script>
 
 <!-- LIGHTBOX VIEWER -->
 <div id="lightbox-overlay" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;z-index:99000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column">

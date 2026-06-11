@@ -28,30 +28,36 @@ function updateBellBadge() {
 }
 
 // ── BELL DROPDOWN ─────────────────────────────────────────
+let _bellLoading = false;
 async function toggleBellDrop() {
   const drop = document.getElementById('bell-dropdown');
   if(!drop) return;
-  _bellDropOpen = !_bellDropOpen;
-  if(_bellDropOpen) {
-    // Load fresh data
-    try {
-      const r = await fetch('/api/notifications',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
-      _notifData = await r.json();
-      updateBellBadge();
-    } catch(e){}
-    renderBellDrop();
-    drop.style.display = '';
-    requestAnimationFrame(()=>{ drop.style.opacity='1'; drop.style.transform='translateY(0)'; });
-    setTimeout(()=>{ document.addEventListener('click', closeBellOnOutside, {once:true}); }, 0);
-  } else {
-    closeBellDrop();
-  }
+  // Nếu đang mở → đóng ngay
+  if(_bellDropOpen) { closeBellDrop(); return; }
+  // Tránh double-tap trong lúc đang load
+  if(_bellLoading) return;
+  _bellLoading = true;
+  _bellDropOpen = true;
+  // Show loading trước
+  drop.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">⏳ Đang tải...</div>';
+  drop.style.display = '';
+  requestAnimationFrame(()=>{ drop.style.opacity='1'; drop.style.transform='translateY(0)'; });
+  // Load fresh data
+  try {
+    const r = await fetch('/api/notifications',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+    _notifData = await r.json();
+    updateBellBadge();
+  } catch(e){}
+  renderBellDrop();
+  _bellLoading = false;
+  setTimeout(()=>{ document.addEventListener('click', closeBellOnOutside, {once:true}); }, 0);
 }
 
 function closeBellDrop() {
   const drop = document.getElementById('bell-dropdown');
   if(!drop) return;
   _bellDropOpen = false;
+  _bellLoading = false;
   drop.style.opacity = '0';
   drop.style.transform = 'translateY(-8px)';
   setTimeout(()=>{ drop.style.display='none'; }, 200);
