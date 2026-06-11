@@ -309,6 +309,10 @@ async function openAccountInfo(){
     const emailEl=document.getElementById('ai-email');if(emailEl)emailEl.textContent=d.email||'—';
     if(_balEl)_balEl.innerHTML=d.is_admin?'<span style="color:#ffd740;font-weight:900">∞</span>':fmtMoney(d.balance||0);
     updateBalanceDisplay(d.balance||0);
+    const depEl=document.getElementById('ai-total-deposited');
+    if(depEl) depEl.textContent=fmtMoney(d.total_deposited||0);
+    const spentEl=document.getElementById('ai-total-spent');
+    if(spentEl) spentEl.textContent=fmtMoney(d.total_spent||0);
   }catch{}
   try{
     if(!IS_ADMIN){
