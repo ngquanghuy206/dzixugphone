@@ -76,7 +76,8 @@ function _asyncUpdateAvatars(containerEl){
     _fetchAndCacheAvatar(uname).then(src => {
       if(!src) return;
       containerEl.querySelectorAll(`[data-avt-user="${uname}"]`).forEach(div => {
-        div.outerHTML = _avatarImgHtml(src, parseInt(div.style.width)||32, isAdmin);
+        const sz = parseInt(div.style.width) || parseInt(div.getAttribute('data-avt-size')) || 32;
+        div.outerHTML = _avatarImgHtml(src, sz, isAdmin);
       });
     });
   });
@@ -117,6 +118,16 @@ function openChatThreadPage(){
   _prefetchAdminAvatar(); // load avatar admin trước
   _loadChatMessages(true);
   _startChatPoll();
+  // Update header avatar admin
+  _fetchAndCacheAvatar(ADMIN_USERNAME).then(src=>{
+    const av = document.getElementById('chat-thread-avatar');
+    if(!av) return;
+    if(src){
+      av.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">`;
+    } else {
+      av.textContent = '👑';
+    }
+  });
 }
 function closeChatThreadPage(){
   _chatOpen=false; _stopChatPoll();
@@ -137,8 +148,9 @@ async function loadInboxThreads(){
     const lastMsg = msgs.length ? msgs[msgs.length-1] : null;
     const lastText = lastMsg ? (lastMsg.text || (lastMsg.img?'[Ảnh]':'')) : 'Gửi tin nhắn cho Admin';
     const lastTime = lastMsg ? (lastMsg.time||'') : '';
+    const adminAvtHtml = _getAdminAvatarHtml(50);
     list.innerHTML = `<div onclick="openChatAdminThread()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg1);transition:.15s" onmouseover="this.style.background='var(--glass)'" onmouseout="this.style.background='var(--bg1)'">
-      <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👑</div>
+      ${adminAvtHtml}
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
           <span style="font-size:14px;font-weight:800;color:var(--text)">Nguyễn Hoàng Khánh Nam</span>
@@ -147,6 +159,7 @@ async function loadInboxThreads(){
         <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lastText}</div>
       </div>
     </div>`;
+    _asyncUpdateAvatars(list);
   }catch{
     list.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px 0">⏳ Đang tải...</div>';
   }
@@ -438,17 +451,25 @@ function closeAdminInboxPage(){
 
 function openAdminChatThreadPage(username){
   _adminChatTarget = username;
-  // Cập nhật header avatar + tên
-  const av = document.getElementById('admin-thread-avatar');
+  // Cập nhật header
   const nm = document.getElementById('admin-thread-username');
-  const initial = _userInitial(username);
-  if(av) av.textContent = initial;
   if(nm) nm.textContent = username;
+  const av = document.getElementById('admin-thread-avatar');
+  if(av){
+    // Render placeholder trước
+    const initial = _userInitial(username);
+    av.style.cssText = 'width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden';
+    av.innerHTML = initial;
+    // Async fetch ảnh thật
+    _fetchAndCacheAvatar(username).then(src=>{
+      if(!src) return;
+      av.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">`;
+      av.style.background = 'transparent';
+    });
+  }
   const page = document.getElementById('admin-chat-thread-page');
   if(page){ page.style.display='flex'; }
-  // Load messages
   _loadAdminThreadMessagesNew();
-  // Poll
   if(_adminChatPollTimer) clearInterval(_adminChatPollTimer);
   _adminChatPollTimer = setInterval(()=>{ _loadAdminThreadMessagesNew(); }, 4000);
 }
