@@ -401,7 +401,7 @@ async function refreshViewPost(){
         const avatarBg = isAdminCmt ? 'linear-gradient(135deg,#ffd740,#ff9800)' : 'linear-gradient(135deg,#4f9eff,#7c4dff)';
         const avatarContent = isAdminCmt ? '👑' : c.author[0].toUpperCase();
         const commentAvatarHtml = isAdminCmt
-          ? `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>`
+          ? `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avt-user="${c.author}">${avatarContent}</div>`
           : (c.author_avatar || (_avatarCache && _avatarCache[c.author])
               ? `<img src="${c.author_avatar || _avatarCache[c.author]}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`
               : `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avt-user="${c.author}">${avatarContent}</div>`);

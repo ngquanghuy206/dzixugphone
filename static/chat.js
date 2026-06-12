@@ -357,19 +357,20 @@ async function _loadAdminThreadMessages(){
     el.innerHTML = msgs.map(m => {
       const isUser = m.from === 'user';
       const name = isUser ? (m.sender||_adminChatTarget) : (m.sender||ADMIN_NAME);
+      const isMine = !isUser;
       const avatarEl = isUser ? _getUserAvatarHtml(m.sender||_adminChatTarget, 28) : _getAdminAvatarHtml(28);
       let bodyHtml = '';
       if(m.img && m.img.length > 10) bodyHtml += `<img src="${m.img}" style="max-width:180px;max-height:160px;border-radius:8px;display:block;cursor:pointer" onclick="openLightbox(this.src)">`;
       if(m.text) bodyHtml += `<span style="white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere">${m.text}</span>`;
-      const bubbleBg = isUser ? 'linear-gradient(135deg,#4f9eff,#7c4dff)' : 'rgba(255,215,64,.12)';
-      const bubbleBorder = isUser ? 'none' : '1px solid rgba(255,215,64,.3)';
-      const textColor = isUser ? '#fff' : 'var(--text)';
-      const dir = isUser ? 'flex-end' : 'flex-start';
-      const br = isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px';
-      const nameLabel = isUser
-        ? `<div style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:2px">${name}</div>`
-        : `<div style="font-size:10px;color:#ffd740;font-weight:700;margin-bottom:2px">${name} <span style="background:linear-gradient(135deg,#ffd740,#ff9800);color:#000;font-size:8px;font-weight:900;padding:1px 5px;border-radius:20px">VIP</span></div>`;
-      if(isUser){
+      const bubbleBg = isMine ? 'linear-gradient(135deg,#ffd740,#ff9800)' : 'var(--glass2)';
+      const bubbleBorder = isMine ? 'none' : '1px solid rgba(255,215,64,.1)';
+      const textColor = isMine ? '#000' : 'var(--text)';
+      const dir = isMine ? 'flex-end' : 'flex-start';
+      const br = isMine ? '16px 4px 16px 16px' : '4px 16px 16px 16px';
+      const nameLabel = isMine
+        ? `<div style="font-size:10px;color:#ffd740;font-weight:700;text-align:right;margin-bottom:2px">${name} <span style="background:linear-gradient(135deg,#ffd740,#ff9800);color:#000;font-size:8px;font-weight:900;padding:1px 5px;border-radius:20px">VIP</span></div>`
+        : `<div style="font-size:10px;color:var(--muted);margin-bottom:2px">${name}</div>`;
+      if(isMine){
         return `<div style="display:flex;justify-content:${dir};gap:6px;align-items:flex-end">
           <div style="max-width:78%">${nameLabel}<div style="background:${bubbleBg};border:${bubbleBorder};color:${textColor};border-radius:${br};padding:8px 11px;font-size:13px">${bodyHtml}</div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:2px">${m.time||''}</div></div>
           ${avatarEl}
@@ -540,17 +541,19 @@ async function _loadAdminThreadMessagesNew(){
     el.innerHTML = msgs.map(m => {
       const isUser = m.from==='user';
       const name = isUser ? (m.sender||_adminChatTarget) : (m.sender||ADMIN_NAME);
+      // Trong admin view: admin = bên phải, user/khách = bên trái
+      const isMine = !isUser; // admin đang nhìn → tin của admin là "của mình"
       const avatarEl = isUser ? _getUserAvatarHtml(m.sender||_adminChatTarget, 32) : _getAdminAvatarHtml(32);
       let bodyHtml='';
       if(m.img&&m.img.length>10) bodyHtml+=`<img src="${m.img}" style="max-width:200px;max-height:180px;border-radius:10px;display:block;cursor:pointer;margin-bottom:${m.text?'4px':'0'}" onclick="openLightbox(this.src)">`;
       if(m.text) bodyHtml+=`<span style="white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere">${m.text}</span>`;
-      const bubbleBg = isUser ? 'linear-gradient(135deg,#4f9eff,#7c4dff)' : 'var(--glass2)';
-      const textColor = isUser ? '#fff' : 'var(--text)';
-      const br = isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px';
-      const nameLabel = isUser
-        ? `<div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:2px">${name}</div>`
-        : `<div style="font-size:11px;color:#ffd740;font-weight:700;margin-bottom:2px">${name}${ADMIN_VIP_BADGE}</div>`;
-      if(isUser){
+      const bubbleBg = isMine ? 'linear-gradient(135deg,#ffd740,#ff9800)' : 'var(--glass2)';
+      const textColor = isMine ? '#000' : 'var(--text)';
+      const br = isMine ? '16px 4px 16px 16px' : '4px 16px 16px 16px';
+      const nameLabel = isMine
+        ? `<div style="font-size:11px;color:#ffd740;font-weight:700;text-align:right;margin-bottom:2px">${name}${ADMIN_VIP_BADGE}</div>`
+        : `<div style="font-size:11px;color:var(--muted);margin-bottom:2px">${name}</div>`;
+      if(isMine){
         return `<div style="display:flex;justify-content:flex-end;gap:8px;align-items:flex-end">
           <div style="max-width:75%">
             ${nameLabel}

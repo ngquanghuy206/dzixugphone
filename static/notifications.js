@@ -270,6 +270,7 @@ function renderTopNap(data) {
   list.innerHTML = entries.slice(0,5).map((e,i) => `
     <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'linear-gradient(135deg,rgba(255,215,0,.12),rgba(255,165,0,.08))':i===1?'linear-gradient(135deg,rgba(192,192,192,.1),rgba(150,150,150,.06))':i===2?'linear-gradient(135deg,rgba(205,127,50,.1),rgba(160,90,30,.06))':'var(--glass2)'};border-radius:14px;margin-bottom:8px;border:1px solid ${i===0?'rgba(255,215,0,.3)':i===1?'rgba(192,192,192,.2)':i===2?'rgba(205,127,50,.2)':'var(--border)'};position:relative;overflow:hidden">
       <div style="font-size:28px;flex-shrink:0">${MEDALS[i]||'⭐'}</div>
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0" data-avt-user="${escHtml(e.username)}">${(e.username||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(e.username)}</div>
         <div style="font-size:12px;color:${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--muted)'};font-weight:700">${fmtVND(e.total)}</div>
@@ -278,6 +279,7 @@ function renderTopNap(data) {
       <div style="font-size:22px;font-weight:900;color:var(--muted);opacity:.15;position:absolute;right:12px;font-family:monospace">#${i+1}</div>
     </div>
   `).join('') + (entries.length>5?`<div style="text-align:center;color:var(--muted);font-size:12px;padding:8px">+${entries.length-5} người khác</div>`:'');
+  if(typeof _asyncUpdateAvatars==='function') _asyncUpdateAvatars(list);
 }
 
 async function adminResetTopNap() {
