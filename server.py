@@ -1899,6 +1899,19 @@ async def get_top_nap(request: Request):
         top = {"month": cur_month, "entries": []}; save_top_nap(top)
     return JSONResponse(top)
 
+@app.post("/api/admin/top-nap/seed-test")
+async def seed_test_top_nap(request: Request):
+    username = get_session_user(get_token(request))
+    if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
+    top = load_top_nap(); cur_month = _current_month_str()
+    top = {"month": cur_month, "entries": [
+        {"username": "testuser1", "total": 500000},
+        {"username": "testuser2", "total": 350000},
+        {"username": "testuser3", "total": 200000},
+    ]}
+    save_top_nap(top)
+    return JSONResponse({"ok": True})
+
 @app.post("/api/admin/top-nap/reset")
 async def reset_top_nap(request: Request):
     username = get_session_user(get_token(request))
