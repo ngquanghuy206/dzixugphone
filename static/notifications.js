@@ -98,6 +98,12 @@ function escHtml(str) {
   return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// fmtVND local — hotdeal.js load sau notifications.js nên cần define riêng
+function _fmtVND(n){
+  if(!n && n!==0) return '0đ';
+  return Number(n).toLocaleString('vi-VN')+'đ';
+}
+
 // ── MAIN NOTIFICATION MODAL ───────────────────────────────
 function parseNotifColors(text) {
   // Convert [color]text[/color] tags to styled spans
@@ -273,7 +279,7 @@ function renderTopNap(data) {
       <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0" data-avt-user="${escHtml(e.username)}">${(e.username||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(e.username)}</div>
-        <div style="font-size:12px;color:${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--muted)'};font-weight:700">${fmtVND(e.total)}</div>
+        <div style="font-size:12px;color:${i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'var(--muted)'};font-weight:700">${_fmtVND(e.total)}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:1px">${PRIZES[i]||''}</div>
       </div>
       <div style="font-size:22px;font-weight:900;color:var(--muted);opacity:.15;position:absolute;right:12px;font-family:monospace">#${i+1}</div>
