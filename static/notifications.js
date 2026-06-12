@@ -235,16 +235,20 @@ async function adminDeleteSubNotif(id) {
 // ── TOP NẠP LEADERBOARD ───────────────────────────────────
 async function openTopNapModal() {
   openModal('top-nap-modal');
-  // Nút reset chỉ hiện với admin
   const adminCtrl = document.getElementById('top-nap-admin-ctrl');
   if(adminCtrl) adminCtrl.style.display = IS_ADMIN ? 'block' : 'none';
   const list = document.getElementById('top-nap-list');
   if(list) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Đang tải...</div>';
   try {
     const r = await fetch('/api/top-nap',{headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+    if(!r.ok){ throw new Error('HTTP '+r.status); }
     const data = await r.json();
+    console.log('[TOP-NAP] data:', JSON.stringify(data));
     renderTopNap(data);
-  } catch(e){ if(list) list.innerHTML='<div style="color:#ff5050;text-align:center;padding:20px">Lỗi tải dữ liệu</div>'; }
+  } catch(e){
+    console.error('[TOP-NAP] error:', e);
+    if(list) list.innerHTML=`<div style="color:#ff5050;text-align:center;padding:20px">Lỗi: ${e.message}</div>`;
+  }
 }
 
 function renderTopNap(data) {
@@ -269,7 +273,11 @@ function renderTopNap(data) {
   ];
 
   if(!entries.length) {
-    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:30px;font-size:14px">📭 Chưa có dữ liệu nạp tháng này</div>';
+    list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:24px 16px">
+      <div style="font-size:36px;margin-bottom:8px">🏆</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">Chưa có dữ liệu tháng này</div>
+      <div style="font-size:12px">Hãy nạp tiền để lên bảng xếp hạng!</div>
+    </div>`;
     return;
   }
 
@@ -296,9 +304,13 @@ async function adminResetTopNap() {
 }
 
 async function adminSeedTestTopNap() {
-  await fetch('/api/admin/top-nap/seed-test',{method:'POST',headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
-  showToast('✅ Đã thêm data test','#4f9eff');
-  openTopNapModal();
+  try {
+    const r = await fetch('/api/admin/top-nap/seed-test',{method:'POST',headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+    const d = await r.json();
+    console.log('[SEED-TEST]', d);
+    if(d.ok){ showToast('✅ Đã thêm data test','#4f9eff'); openTopNapModal(); }
+    else showToast('❌ Lỗi: '+JSON.stringify(d),'#ff5050');
+  } catch(e){ showToast('❌ '+e.message,'#ff5050'); }
 }
 
 // ── ADMIN: IMAGE UPLOAD FOR NOTIF ────────────────────────
