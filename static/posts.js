@@ -70,6 +70,7 @@ function renderPostsFeed(){
   }
   el.style.display='block';
   el.innerHTML = _postsCache.map(p => renderPostCard(p)).join('<div style="height:8px;background:var(--glass2)"></div>');
+  if(typeof _asyncUpdateAvatars==='function') _asyncUpdateAvatars(el);
 }
 
 function renderPostCard(p, inFeed=true){
@@ -115,7 +116,7 @@ function renderPostCard(p, inFeed=true){
   return `<div style="${cardStyle}" id="post-card-${p.id}">
     <!-- Author row -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      ${(p.author_avatar) ? `<img src="${p.author_avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isAdmin?'rgba(255,215,64,.5)':'rgba(79,158,255,.3)'}" alt="">` : `<div style="width:40px;height:40px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0">${isAdmin?'👑':avatarLetter}</div>`}
+      ${(p.author_avatar) ? `<img src="${p.author_avatar}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid ${isAdmin?'rgba(255,215,64,.5)':'rgba(79,158,255,.3)'}" alt="">` : `<div style="width:40px;height:40px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff;flex-shrink:0" data-avt-user="${p.author||''}">${isAdmin?'👑':avatarLetter}</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-size:14px">${authorDisplay}</div>
         <div style="font-size:11px;color:var(--muted)">${p.created||''}</div>
@@ -264,7 +265,22 @@ function openCreatePost(){
   const unEl = document.getElementById('create-post-username');
   if(unEl) unEl.textContent = CURRENT_USER;
   const avEl = document.getElementById('create-post-avatar');
-  if(avEl){ avEl.textContent = IS_ADMIN ? '👑' : (CURRENT_USER||'?')[0].toUpperCase(); }
+  if(avEl){
+    if(IS_ADMIN){
+      avEl.style.cssText = 'width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden';
+      avEl.innerHTML = '👑';
+      if(typeof _fetchAndCacheAvatar==='function') _fetchAndCacheAvatar(ADMIN_USERNAME||CURRENT_USER).then(src=>{
+        if(src){ avEl.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">`; avEl.style.background='transparent'; }
+      });
+    } else {
+      const initial = (CURRENT_USER||'?')[0].toUpperCase();
+      avEl.style.cssText = 'width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden';
+      avEl.innerHTML = initial;
+      if(typeof _fetchAndCacheAvatar==='function') _fetchAndCacheAvatar(CURRENT_USER).then(src=>{
+        if(src){ avEl.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">`; avEl.style.background='transparent'; }
+      });
+    }
+  }
   openModal('create-post-modal');
 }
 
@@ -388,7 +404,7 @@ async function refreshViewPost(){
           ? `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>`
           : (c.author_avatar || _avatarCache[c.author] || (() => { try{ return localStorage.getItem('zct_avatar_'+c.author)||''; }catch(e){ return ''; }})()
               ? `<img src="${c.author_avatar || _avatarCache[c.author] || localStorage.getItem('zct_avatar_'+c.author)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`
-              : `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avatar-for="${c.author}">${avatarContent}</div>`);
+              : `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avt-user="${c.author}">${avatarContent}</div>`);
         let mediaHtml = '';
         if(c.media&&c.media.length) c.media.forEach(m=>{
           if(m.type==='image') mediaHtml+=`<img src="${m.data}" style="max-width:200px;max-height:150px;border-radius:10px;margin-top:6px;cursor:pointer;display:block" onclick="openLightbox(this.src)">`;
@@ -413,21 +429,7 @@ async function refreshViewPost(){
 
   el.innerHTML = postHtml + '<div style="height:1px;background:var(--border);margin:4px 0"></div>' + commentsHtml;
   el.scrollTop = el.scrollHeight;
-  // Async update comment avatars
-  if(typeof _fetchAndCacheAvatar === 'function'){
-    el.querySelectorAll('[data-avatar-for]').forEach(async div=>{
-      const uname = div.getAttribute('data-avatar-for');
-      if(!uname) return;
-      const src = await _fetchAndCacheAvatar(uname);
-      if(src && div.parentNode){
-        const img = document.createElement('img');
-        img.src = src;
-        img.style.cssText = 'width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)';
-        img.alt = '';
-        div.replaceWith(img);
-      }
-    });
-  }
+  if(typeof _asyncUpdateAvatars==='function') _asyncUpdateAvatars(el);
 }
 
 function handleCommentMedia(input){
