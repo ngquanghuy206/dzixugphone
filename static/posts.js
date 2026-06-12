@@ -402,8 +402,8 @@ async function refreshViewPost(){
         const avatarContent = isAdminCmt ? '👑' : c.author[0].toUpperCase();
         const commentAvatarHtml = isAdminCmt
           ? `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>`
-          : (c.author_avatar || _avatarCache[c.author] || (() => { try{ return localStorage.getItem('zct_avatar_'+c.author)||''; }catch(e){ return ''; }})()
-              ? `<img src="${c.author_avatar || _avatarCache[c.author] || localStorage.getItem('zct_avatar_'+c.author)}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`
+          : (c.author_avatar || (_avatarCache && _avatarCache[c.author])
+              ? `<img src="${c.author_avatar || _avatarCache[c.author]}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`
               : `<div style="width:32px;height:32px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0" data-avt-user="${c.author}">${avatarContent}</div>`);
         let mediaHtml = '';
         if(c.media&&c.media.length) c.media.forEach(m=>{

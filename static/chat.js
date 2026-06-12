@@ -11,23 +11,17 @@ const ADMIN_VIP_BADGE = '<span style="background:linear-gradient(135deg,#ffd740,
 
 function _userInitial(name){ return (name||'?')[0].toUpperCase(); }
 
-// Cache avatar từ server
+// Cache avatar từ server (in-memory only, không dùng localStorage để tránh stale)
 const _avatarCache = {};
 async function _fetchAndCacheAvatar(username){
   if(_avatarCache[username] !== undefined) return _avatarCache[username];
-  // Thử localStorage trước (nhanh hơn)
-  try{
-    const local = localStorage.getItem('zct_avatar_'+username);
-    if(local){ _avatarCache[username]=local; return local; }
-  }catch(e){}
-  // Fetch từ server
+  // Fetch từ server luôn để lấy avatar mới nhất
   try{
     const r = await fetch('/api/user/avatar/'+encodeURIComponent(username),{
       headers:{'Authorization':'Bearer '+SESSION_TOKEN}
     });
     const d = await r.json();
     _avatarCache[username] = d.avatar||'';
-    if(d.avatar) try{localStorage.setItem('zct_avatar_'+username, d.avatar);}catch(e){}
     return _avatarCache[username];
   }catch(e){ _avatarCache[username]=''; return ''; }
 }
@@ -54,12 +48,9 @@ function _avatarImgHtml(src, size, isAdmin){
 function _getAvatarHtml(username, size){
   size = size||32;
   const isAdmin = (username === ADMIN_USERNAME);
-  try{
-    const src = _avatarCache[username] !== undefined
-      ? _avatarCache[username]
-      : (localStorage.getItem('zct_avatar_'+username) || '');
-    if(src) return _avatarImgHtml(src, size, isAdmin);
-  }catch(e){}
+  // Chỉ dùng in-memory cache, không đọc localStorage (tránh stale)
+  const src = _avatarCache[username];
+  if(src) return _avatarImgHtml(src, size, isAdmin);
   return _avatarFallbackHtml(username, size, isAdmin);
 }
 
