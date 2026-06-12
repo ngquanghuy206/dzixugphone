@@ -289,6 +289,12 @@ async function adminResetTopNap() {
   openTopNapModal();
 }
 
+async function adminSeedTestTopNap() {
+  await fetch('/api/admin/top-nap/seed-test',{method:'POST',headers:{'Authorization':'Bearer '+SESSION_TOKEN}});
+  showToast('✅ Đã thêm data test','#4f9eff');
+  openTopNapModal();
+}
+
 // ── ADMIN: IMAGE UPLOAD FOR NOTIF ────────────────────────
 let _notifImgBase64 = '';
 
