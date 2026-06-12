@@ -34,59 +34,59 @@ async function _fetchAndCacheAvatar(username){
 
 const ADMIN_USERNAME = 'knammelbel206';
 
-function _getAdminAvatarHtml(size){
+// ── Avatar cache theo từng username, KHÔNG bao giờ dùng chung ──
+function _avatarFallbackHtml(username, size, isAdmin){
   size = size||32;
-  // Lấy đúng avatar của admin theo username, không scan lung tung localStorage
-  try{
-    const src = _avatarCache[ADMIN_USERNAME] || localStorage.getItem('zct_avatar_'+ADMIN_USERNAME) || '';
-    if(src){
-      if(_avatarCache[ADMIN_USERNAME]===undefined) _avatarCache[ADMIN_USERNAME]=src;
-      return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
-    }
-  }catch(e){}
-  // Fallback emoji 👑
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.5)}px;flex-shrink:0" data-avatar-admin="1">👑</div>`;
-}
-
-// Async: fetch avatar admin từ server rồi update DOM
-async function _prefetchAdminAvatar(){
-  if(_avatarCache[ADMIN_USERNAME]) return; // đã có
-  try{
-    const src = localStorage.getItem('zct_avatar_'+ADMIN_USERNAME) || '';
-    if(src){ _avatarCache[ADMIN_USERNAME]=src; return; }
-  }catch(e){}
-  // Fetch từ API
-  await _fetchAndCacheAvatar(ADMIN_USERNAME);
-}
-
-function _getUserAvatarHtml(username, size){
-  size = size||32;
-  // Thử lấy từ cache (sync) — ưu tiên username chính xác, fallback CURRENT_USER nếu trùng
-  try{
-    const src = _avatarCache[username] || localStorage.getItem('zct_avatar_'+username) || '';
-    if(src){
-      if(_avatarCache[username]===undefined) _avatarCache[username]=src;
-      return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`;
-    }
-  }catch(e){}
-  const initial=_userInitial(username);
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.45)}px;font-weight:700;color:#fff;flex-shrink:0" data-avatar-for="${username}">${initial}</div>`;
-}
-
-// Async version: render initial trước, sau đó replace bằng ảnh thật
-async function _getUserAvatarHtmlAsync(username, size, containerEl){
-  const initial = _getUserAvatarHtml(username, size);
-  // Sau khi render xong, fetch và update nếu cần
-  const src = await _fetchAndCacheAvatar(username);
-  if(src && containerEl){
-    // Tìm placeholder và replace
-    const placeholders = containerEl.querySelectorAll(`[data-avatar-for="${username}"]`);
-    placeholders.forEach(el=>{
-      el.outerHTML = `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`;
-    });
+  if(isAdmin){
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#ffd740,#ff9800);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.5)}px;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" data-avt-user="${username}">👑</div>`;
   }
-  return initial;
+  const initial = _userInitial(username);
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.45)}px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" data-avt-user="${username}">${initial}</div>`;
 }
+
+function _avatarImgHtml(src, size, isAdmin){
+  size = size||32;
+  const border = isAdmin ? 'border:2px solid rgba(255,215,64,.5)' : 'border:2px solid rgba(79,158,255,.3)';
+  return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0;${border}" alt="" onerror="this.style.display='none'">`;
+}
+
+// Lấy avatar html đồng bộ (từ cache/localStorage), fallback về icon
+function _getAvatarHtml(username, size){
+  size = size||32;
+  const isAdmin = (username === ADMIN_USERNAME);
+  try{
+    const src = _avatarCache[username] !== undefined
+      ? _avatarCache[username]
+      : (localStorage.getItem('zct_avatar_'+username) || '');
+    if(src) return _avatarImgHtml(src, size, isAdmin);
+  }catch(e){}
+  return _avatarFallbackHtml(username, size, isAdmin);
+}
+
+// Sau khi render xong, async fetch và replace placeholder nếu cần
+function _asyncUpdateAvatars(containerEl){
+  if(!containerEl) return;
+  const placeholders = containerEl.querySelectorAll('[data-avt-user]');
+  const seen = new Set();
+  placeholders.forEach(el => {
+    const uname = el.getAttribute('data-avt-user');
+    if(!uname || seen.has(uname)) return;
+    seen.add(uname);
+    const isAdmin = (uname === ADMIN_USERNAME);
+    _fetchAndCacheAvatar(uname).then(src => {
+      if(!src) return;
+      containerEl.querySelectorAll(`[data-avt-user="${uname}"]`).forEach(div => {
+        div.outerHTML = _avatarImgHtml(src, parseInt(div.style.width)||32, isAdmin);
+      });
+    });
+  });
+}
+
+// Wrapper cũ giữ để không break code khác
+function _getAdminAvatarHtml(size){ return _getAvatarHtml(ADMIN_USERNAME, size); }
+function _getUserAvatarHtml(username, size){ return _getAvatarHtml(username, size); }
+async function _prefetchAdminAvatar(){ await _fetchAndCacheAvatar(ADMIN_USERNAME); }
+
 
 // ══════════════════════════════════════════════════════
 // INBOX PAGE — giống chototmmo
@@ -202,21 +202,10 @@ function _renderChatMessages(){
   const welcome = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px"><div style="background:var(--glass2);border-radius:12px;padding:8px 14px;display:inline-block">💬 Gửi tin nhắn cho Admin, chúng tôi sẽ phản hồi sớm nhất!</div></div>';
   if(!_chatMessages.length){ el.innerHTML=welcome; return; }
 
-  const userAvatarSrc = (()=>{ try{ return localStorage.getItem('zct_avatar_'+CURRENT_USER)||''; }catch(e){ return ''; } })();
-
   const html = _chatMessages.map(m => {
     const isUser = m.from === 'user';
     const name = isUser ? (m.sender||CURRENT_USER) : ADMIN_NAME;
-    const initial = _userInitial(name);
-    const avatarBg = isUser ? 'linear-gradient(135deg,#4f9eff,#7c4dff)' : 'linear-gradient(135deg,#ffd740,#ff9800)';
-    const avatarContent = isUser ? initial : ADMIN_AVATAR_EMOJI;
-
-    let avatarHtml;
-    if(isUser){
-      avatarHtml = _getUserAvatarHtml(m.sender||CURRENT_USER, 32);
-    } else {
-      avatarHtml = _getAdminAvatarHtml(32);
-    }
+    const avatarHtml = isUser ? _getUserAvatarHtml(m.sender||CURRENT_USER, 32) : _getAdminAvatarHtml(32);
 
     let bodyHtml = '';
     if(m.img && m.img.length > 10){
@@ -253,22 +242,7 @@ function _renderChatMessages(){
   }).join('');
 
   el.innerHTML = welcome + html;
-  // Async update avatar user hiện tại nếu chưa cache
-  if(CURRENT_USER){
-    _fetchAndCacheAvatar(CURRENT_USER).then(src=>{
-      if(!src) return;
-      el.querySelectorAll(`[data-avatar-for="${CURRENT_USER}"]`).forEach(div=>{
-        div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`;
-      });
-    });
-  }
-  // Async update avatar admin
-  _fetchAndCacheAvatar(ADMIN_USERNAME).then(src=>{
-    if(!src) return;
-    el.querySelectorAll('[data-avatar-admin]').forEach(div=>{
-      div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
-    });
-  });
+  _asyncUpdateAvatars(el);
 }
 
 function chatAttachImage(input){
@@ -379,9 +353,7 @@ async function _loadAdminThreadMessages(){
     el.innerHTML = msgs.map(m => {
       const isUser = m.from === 'user';
       const name = isUser ? (m.sender||_adminChatTarget) : (m.sender||ADMIN_NAME);
-      const initial = _userInitial(name);
-      const avatarBg = isUser ? 'linear-gradient(135deg,#4f9eff,#7c4dff)' : 'linear-gradient(135deg,#ffd740,#ff9800)';
-      const avatarContent = isUser ? initial : ADMIN_AVATAR_EMOJI;
+      const avatarEl = isUser ? _getUserAvatarHtml(m.sender||_adminChatTarget, 28) : _getAdminAvatarHtml(28);
       let bodyHtml = '';
       if(m.img && m.img.length > 10) bodyHtml += `<img src="${m.img}" style="max-width:180px;max-height:160px;border-radius:8px;display:block;cursor:pointer" onclick="openLightbox(this.src)">`;
       if(m.text) bodyHtml += `<span style="white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere">${m.text}</span>`;
@@ -396,16 +368,17 @@ async function _loadAdminThreadMessages(){
       if(isUser){
         return `<div style="display:flex;justify-content:${dir};gap:6px;align-items:flex-end">
           <div style="max-width:78%">${nameLabel}<div style="background:${bubbleBg};border:${bubbleBorder};color:${textColor};border-radius:${br};padding:8px 11px;font-size:13px">${bodyHtml}</div><div style="font-size:10px;color:var(--muted);text-align:right;margin-top:2px">${m.time||''}</div></div>
-          <div style="width:28px;height:28px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${avatarContent}</div>
+          ${avatarEl}
         </div>`;
       } else {
         return `<div style="display:flex;justify-content:${dir};gap:6px;align-items:flex-end">
-          <div style="width:28px;height:28px;border-radius:50%;background:${avatarBg};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${avatarContent}</div>
+          ${avatarEl}
           <div style="max-width:78%">${nameLabel}<div style="background:${bubbleBg};border:${bubbleBorder};color:${textColor};border-radius:${br};padding:8px 11px;font-size:13px">${bodyHtml}</div><div style="font-size:10px;color:var(--muted);text-align:left;margin-top:2px">${m.time||''}</div></div>
         </div>`;
       }
     }).join('');
     el.scrollTop = 99999;
+    _asyncUpdateAvatars(el);
   }catch{}
 }
 
@@ -513,9 +486,7 @@ function renderAdminInboxThreads(threads){
     const lastText = lastMsg.text || (lastMsg.img ? '[Ảnh]' : '...');
     const lastTime = lastMsg.time || '';
     const unread = t.unread || 0;
-    const initial = _userInitial(t.username);
-    // Avatar: lấy từ localStorage nếu có (admin ko có avatar user, dùng initial)
-    const avatarHtml = `<div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#4f9eff,#7c4dff);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0">${initial}</div>`;
+    const avatarHtml = _getUserAvatarHtml(t.username, 50);
     return `<div onclick="openAdminChatThreadPage('${t.username}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg1);transition:.15s" onmouseover="this.style.background='var(--glass)'" onmouseout="this.style.background='var(--bg1)'">
       ${avatarHtml}
       <div style="flex:1;min-width:0">
@@ -530,6 +501,7 @@ function renderAdminInboxThreads(threads){
       </div>
     </div>`;
   }).join('');
+  _asyncUpdateAvatars(container);
 }
 
 function filterAdminInboxThreads(q){
@@ -556,9 +528,7 @@ async function _loadAdminThreadMessagesNew(){
     el.innerHTML = msgs.map(m => {
       const isUser = m.from==='user';
       const name = isUser ? (m.sender||_adminChatTarget) : (m.sender||ADMIN_NAME);
-      const initial = _userInitial(name);
-      const avatarBg = isUser ? 'linear-gradient(135deg,#4f9eff,#7c4dff)' : 'linear-gradient(135deg,#ffd740,#ff9800)';
-      const avatarContent = isUser ? initial : ADMIN_AVATAR_EMOJI;
+      const avatarEl = isUser ? _getUserAvatarHtml(m.sender||_adminChatTarget, 32) : _getAdminAvatarHtml(32);
       let bodyHtml='';
       if(m.img&&m.img.length>10) bodyHtml+=`<img src="${m.img}" style="max-width:200px;max-height:180px;border-radius:10px;display:block;cursor:pointer;margin-bottom:${m.text?'4px':'0'}" onclick="openLightbox(this.src)">`;
       if(m.text) bodyHtml+=`<span style="white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere">${m.text}</span>`;
@@ -568,7 +538,6 @@ async function _loadAdminThreadMessagesNew(){
       const nameLabel = isUser
         ? `<div style="font-size:11px;color:var(--muted);text-align:right;margin-bottom:2px">${name}</div>`
         : `<div style="font-size:11px;color:#ffd740;font-weight:700;margin-bottom:2px">${name}${ADMIN_VIP_BADGE}</div>`;
-      const avatarEl = isUser ? _getUserAvatarHtml(m.sender||_adminChatTarget, 32) : _getAdminAvatarHtml(32);
       if(isUser){
         return `<div style="display:flex;justify-content:flex-end;gap:8px;align-items:flex-end">
           <div style="max-width:75%">
@@ -587,22 +556,7 @@ async function _loadAdminThreadMessagesNew(){
       }
     }).join('');
     if(wasAtBottom || el.scrollTop===0) el.scrollTop=99999;
-    // Async update user avatar sau khi render
-    if(_adminChatTarget){
-      _fetchAndCacheAvatar(_adminChatTarget).then(src=>{
-        if(!src) return;
-        el.querySelectorAll(`[data-avatar-for="${_adminChatTarget}"]`).forEach(div=>{
-          div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,158,255,.3)" alt="">`;
-        });
-      });
-    }
-    // Async update admin avatar (hiện đúng ảnh admin thay vì 👑)
-    _fetchAndCacheAvatar(ADMIN_USERNAME).then(src=>{
-      if(!src) return;
-      el.querySelectorAll('[data-avatar-admin]').forEach(div=>{
-        div.outerHTML = `<img src="${src}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,215,64,.4)" alt="">`;
-      });
-    });
+    _asyncUpdateAvatars(el);
   }catch{}
 }
 
