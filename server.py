@@ -1882,6 +1882,8 @@ async def delete_sub_notification(sub_id: str, request: Request):
 def _current_month_str():
     return datetime.now().strftime("%Y-%m")
 
+MIN_TOP_NAP = 2_000_000  # Tối thiểu 2 triệu/tháng để vào BXH
+
 def _update_top_nap(username: str, amount: int):
     top = load_top_nap(); cur_month = _current_month_str()
     if top.get("month") != cur_month: top = {"month": cur_month, "entries": []}
@@ -1897,7 +1899,9 @@ async def get_top_nap(request: Request):
     top = load_top_nap(); cur_month = _current_month_str()
     if top.get("month") != cur_month:
         top = {"month": cur_month, "entries": []}; save_top_nap(top)
-    return JSONResponse(top)
+    # Chỉ trả entries đạt tối thiểu 2 triệu
+    filtered = [e for e in top.get("entries", []) if e.get("total", 0) >= MIN_TOP_NAP]
+    return JSONResponse({"month": top["month"], "entries": filtered, "min_amount": MIN_TOP_NAP})
 
 @app.post("/api/admin/top-nap/seed-test")
 async def seed_test_top_nap(request: Request):
@@ -1905,9 +1909,9 @@ async def seed_test_top_nap(request: Request):
     if not username or not is_admin(username): raise HTTPException(403, "Không có quyền")
     top = load_top_nap(); cur_month = _current_month_str()
     top = {"month": cur_month, "entries": [
-        {"username": "testuser1", "total": 500000},
-        {"username": "testuser2", "total": 350000},
-        {"username": "testuser3", "total": 200000},
+        {"username": "testuser1", "total": 5000000},
+        {"username": "testuser2", "total": 3500000},
+        {"username": "testuser3", "total": 2000000},
     ]}
     save_top_nap(top)
     return JSONResponse({"ok": True})
