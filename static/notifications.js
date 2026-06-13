@@ -275,8 +275,8 @@ function renderTopNap(data) {
   if(!entries.length) {
     list.innerHTML = `<div style="text-align:center;color:var(--muted);padding:24px 16px">
       <div style="font-size:36px;margin-bottom:8px">🏆</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px">Chưa có dữ liệu tháng này</div>
-      <div style="font-size:12px">Hãy nạp tiền để lên bảng xếp hạng!</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">Chưa có ai đạt điều kiện</div>
+      <div style="font-size:12px">Nạp tối thiểu <b style="color:#ffd740">2.000.000đ</b> trong tháng để vào BXH!</div>
     </div>`;
     return;
   }
